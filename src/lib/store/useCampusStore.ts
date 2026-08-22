@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { CampusLocation, SpaceAlert, UserPreferences, SpaceType } from '@/types';
+import { CampusLocation, SpaceAlert, UserPreferences, SpaceType, CampusId } from '@/types';
 import { INITIAL_CAMPUS_LOCATIONS } from '@/lib/supabase/seed-data';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { getOrCreateSessionId } from '@/lib/utils/session';
@@ -36,6 +36,8 @@ export function useCampusStore() {
     occupancyPct: number;
   } | null>(null);
 
+  const [selectedCampus, setSelectedCampus] = useState<CampusId>('sst_bangalore');
+  const [selectedFloor, setSelectedFloor] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<CampusLocation | null>(null);
   const [isFindModalOpen, setIsFindModalOpen] = useState(false);
   const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
@@ -50,6 +52,7 @@ export function useCampusStore() {
     wifi: false,
     low_crowd: false,
     type: 'all',
+    floor: 'all',
   });
 
   // Re-render when global store changes
@@ -142,7 +145,7 @@ export function useCampusStore() {
 
     // Subscribe to Postgres changes
     const channel = supabase
-      .channel('campus-realtime-public')
+      .channel('spotly-realtime-public')
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'locations' },
@@ -163,7 +166,7 @@ export function useCampusStore() {
     };
   }, [evaluateAlertsLocally]);
 
-  // Update occupancy action (used by simulator or crowd report)
+  // Update occupancy action
   const updateOccupancy = useCallback(
     async (locationId: string, newOccupancy: number) => {
       const loc = globalLocations.find((l) => l.id === locationId);
@@ -205,7 +208,7 @@ export function useCampusStore() {
         id: 'alert_' + Math.random().toString(36).substring(2, 9),
         user_session_id: sessionId,
         location_id: locationId,
-        location_name: loc?.name || 'Campus Space',
+        location_name: loc?.name || 'SST Space',
         threshold_percentage: thresholdPercentage,
         is_active: true,
         created_at: new Date().toISOString(),
@@ -256,13 +259,13 @@ export function useCampusStore() {
   const runPresetScenario = useCallback(
     (scenario: 'hero_alert' | 'rush_hour' | 'quiet_night' | 'reset') => {
       if (scenario === 'hero_alert') {
-        // Drop Study Room B from 20 (83%) to 11 (46%) -> triggers <= 50% alert!
-        const srB = globalLocations.find((l) => l.code === 'SR-B');
-        if (srB) {
-          updateOccupancy(srB.id, 11);
+        // Drop Coding Pod B (SST-POD-B) from 20 (83%) to 11 (46%) -> triggers <= 50% alert!
+        const podB = globalLocations.find((l) => l.code === 'SST-POD-B');
+        if (podB) {
+          updateOccupancy(podB.id, 11);
         }
       } else if (scenario === 'rush_hour') {
-        // High occupancy across campus
+        // High occupancy across SST campus
         globalLocations.forEach((loc) => {
           updateOccupancy(loc.id, Math.round(loc.capacity * 0.88));
         });
@@ -280,10 +283,16 @@ export function useCampusStore() {
     [updateOccupancy]
   );
 
-  // Computed Values
-  const totalCapacity = globalLocations.reduce((acc, l) => acc + l.capacity, 0);
-  const totalOccupancy = globalLocations.reduce((acc, l) => acc + l.current_occupancy, 0);
-  const campusOccupancyPercentage = Math.round((totalOccupancy / Math.max(1, totalCapacity)) * 100);
+  // Filtered by active campus
+  const currentCampusLocations = globalLocations.filter(
+    (l) => l.campus_id === selectedCampus
+  );
+
+  const totalCapacity = currentCampusLocations.reduce((acc, l) => acc + l.capacity, 0);
+  const totalOccupancy = currentCampusLocations.reduce((acc, l) => acc + l.current_occupancy, 0);
+  const campusOccupancyPercentage = Math.round(
+    (totalOccupancy / Math.max(1, totalCapacity)) * 100
+  );
 
   const activeUserAlerts = globalAlerts.filter(
     (a) => a.user_session_id === getOrCreateSessionId()
@@ -291,6 +300,11 @@ export function useCampusStore() {
 
   return {
     locations: globalLocations,
+    currentCampusLocations,
+    selectedCampus,
+    setSelectedCampus,
+    selectedFloor,
+    setSelectedFloor,
     alerts: activeUserAlerts,
     allAlerts: globalAlerts,
     activeAlertTrigger,

@@ -20,6 +20,11 @@ import { Sparkles, Shield, Cpu, RefreshCw, Github } from 'lucide-react';
 export default function CampusSpaceApp() {
   const {
     locations,
+    currentCampusLocations,
+    selectedCampus,
+    setSelectedCampus,
+    selectedFloor,
+    setSelectedFloor,
     alerts,
     activeAlertTrigger,
     clearAlertTrigger,
@@ -52,16 +57,21 @@ export default function CampusSpaceApp() {
   const [isActiveAlertsDrawerOpen, setIsActiveAlertsDrawerOpen] = useState(false);
   const [targetNotifyLocation, setTargetNotifyLocation] = useState<CampusLocation | null>(null);
 
-  // Compute top recommendation
+  // Available floors in the active campus
+  const availableFloors = useMemo(() => {
+    return Array.from(new Set(currentCampusLocations.map((l) => l.floor)));
+  }, [currentCampusLocations]);
+
+  // Compute top recommendation within active campus
   const rankedSpaces = useMemo(() => {
-    return rankSpaces(locations, userPreferences);
-  }, [locations, userPreferences]);
+    return rankSpaces(currentCampusLocations, userPreferences);
+  }, [currentCampusLocations, userPreferences]);
 
   const topRecommendation = rankedSpaces.length > 0 ? rankedSpaces[0] : null;
 
   // Filter locations for the grid / map
   const filteredLocations = useMemo(() => {
-    return locations.filter((loc) => {
+    return currentCampusLocations.filter((loc) => {
       // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -69,8 +79,14 @@ export default function CampusSpaceApp() {
           loc.name.toLowerCase().includes(q) ||
           loc.building.toLowerCase().includes(q) ||
           loc.description.toLowerCase().includes(q) ||
+          loc.floor.toLowerCase().includes(q) ||
           loc.type.toLowerCase().includes(q);
         if (!matches) return false;
+      }
+
+      // Floor Filter
+      if (selectedFloor !== 'all' && loc.floor !== selectedFloor) {
+        return false;
       }
 
       // Space Type
@@ -97,8 +113,9 @@ export default function CampusSpaceApp() {
       return true;
     });
   }, [
-    locations,
+    currentCampusLocations,
     searchQuery,
+    selectedFloor,
     filterType,
     filterQuietOnly,
     filterChargingOnly,
@@ -112,6 +129,7 @@ export default function CampusSpaceApp() {
 
   const handleResetFilters = () => {
     setSearchQuery('');
+    setSelectedFloor('all');
     setFilterType('all');
     setFilterQuietOnly(false);
     setFilterChargingOnly(false);
@@ -122,6 +140,7 @@ export default function CampusSpaceApp() {
       wifi: false,
       low_crowd: false,
       type: 'all',
+      floor: 'all',
     });
   };
 
@@ -148,6 +167,8 @@ export default function CampusSpaceApp() {
           onSearchChange={setSearchQuery}
           selectedType={filterType}
           onTypeChange={setFilterType}
+          selectedFloor={selectedFloor}
+          onFloorChange={setSelectedFloor}
           quietOnly={filterQuietOnly}
           onQuietToggle={setFilterQuietOnly}
           chargingOnly={filterChargingOnly}
@@ -156,6 +177,7 @@ export default function CampusSpaceApp() {
           onSpaciousToggle={setSpaciousOnly}
           activeView={activeTab}
           onViewChange={setActiveTab}
+          availableFloors={availableFloors}
         />
 
         {/* Content View: Cards vs Map */}
@@ -169,7 +191,8 @@ export default function CampusSpaceApp() {
           />
         ) : (
           <CampusMap
-            locations={filteredLocations}
+            locations={currentCampusLocations}
+            selectedCampus={selectedCampus}
             onSelectLocation={(loc) => setSelectedLocation(loc)}
             recommendedLocationId={topRecommendation?.location.id}
           />
@@ -181,7 +204,7 @@ export default function CampusSpaceApp() {
       <FindSpaceModal
         isOpen={isFindModalOpen}
         onClose={() => setIsFindModalOpen(false)}
-        locations={locations}
+        locations={currentCampusLocations}
         onApplyPreferences={(prefs) => setUserPreferences(prefs)}
         onSelectRecommendedLocation={(loc) => setSelectedLocation(loc)}
       />
@@ -256,7 +279,7 @@ export default function CampusSpaceApp() {
             </span>
             <span>•</span>
             <span className="text-slate-400">
-              Built for 13h Hackathon • ₹0 Cost Stack
+              Built for 13h Hackathon • Scaler School of Technology
             </span>
           </div>
         </div>

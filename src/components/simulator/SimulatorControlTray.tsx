@@ -21,7 +21,7 @@ export const SimulatorControlTray: React.FC<SimulatorControlTrayProps> = ({
   onRunPreset,
 }) => {
   const [selectedLocId, setSelectedLocId] = useState<string>(
-    locations.find((l) => l.code === 'SR-B')?.id || locations[0]?.id || ''
+    locations.find((l) => l.code === 'SST-POD-B')?.id || locations[0]?.id || ''
   );
 
   if (!isOpen) return null;
@@ -167,7 +167,7 @@ export const SimulatorControlTray: React.FC<SimulatorControlTrayProps> = ({
             >
               <span className="flex items-center gap-1.5">
                 <Flame className="w-3.5 h-3.5 text-amber-400" />
-                🔥 Trigger Study Room B Alert (&le;46%)
+                🔥 Trigger Coding Pod B Alert (&le;46%)
               </span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 font-black">
                 HERO DEMO

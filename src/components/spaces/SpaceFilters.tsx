@@ -2,13 +2,15 @@
 
 import React from 'react';
 import { SpaceType } from '@/types';
-import { Search, VolumeX, Zap, LayoutGrid, Map as MapIcon, Sparkles } from 'lucide-react';
+import { Search, VolumeX, Zap, LayoutGrid, Map as MapIcon, Sparkles, Layers } from 'lucide-react';
 
 interface SpaceFiltersProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   selectedType: SpaceType | 'all';
   onTypeChange: (type: SpaceType | 'all') => void;
+  selectedFloor: string;
+  onFloorChange: (floor: string) => void;
   quietOnly: boolean;
   onQuietToggle: (val: boolean) => void;
   chargingOnly: boolean;
@@ -17,6 +19,7 @@ interface SpaceFiltersProps {
   onSpaciousToggle: (val: boolean) => void;
   activeView: 'cards' | 'map';
   onViewChange: (v: 'cards' | 'map') => void;
+  availableFloors: string[];
 }
 
 export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
@@ -24,6 +27,8 @@ export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
   onSearchChange,
   selectedType,
   onTypeChange,
+  selectedFloor,
+  onFloorChange,
   quietOnly,
   onQuietToggle,
   chargingOnly,
@@ -32,18 +37,20 @@ export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
   onSpaciousToggle,
   activeView,
   onViewChange,
+  availableFloors,
 }) => {
   const typeCategories: { label: string; value: SpaceType | 'all' }[] = [
-    { label: 'All Spaces', value: 'all' },
+    { label: 'All Types', value: 'all' },
+    { label: 'Study Pods & Rooms', value: 'study_room' },
     { label: 'Libraries', value: 'library' },
-    { label: 'Study Rooms', value: 'study_room' },
-    { label: 'Labs', value: 'lab' },
-    { label: 'Cafeterias', value: 'cafeteria' },
-    { label: 'Lounges', value: 'lounge' },
+    { label: 'Tech Labs & Hack', value: 'lab' },
+    { label: 'Classrooms / Amphi', value: 'classroom' },
+    { label: 'Cafeteria', value: 'cafeteria' },
+    { label: 'Lounges & Turf', value: 'lounge' },
   ];
 
   return (
-    <div className="flex flex-col gap-4 mb-6">
+    <div className="flex flex-col gap-3.5 mb-6">
       {/* Top Bar: Search + View Switcher */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search Bar */}
@@ -51,7 +58,7 @@ export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search campus buildings, study rooms, labs..."
+            placeholder="Search SST Innovation Lab, Coding Pods, Reading Room, Cafeteria..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/50 transition-all"
@@ -84,6 +91,37 @@ export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
             <span>Campus Map</span>
           </button>
         </div>
+      </div>
+
+      {/* Floor-by-Floor Selector Bar */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full no-scrollbar">
+        <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1 pr-2 shrink-0">
+          <Layers className="w-3.5 h-3.5 text-emerald-400" />
+          Floor:
+        </span>
+        <button
+          onClick={() => onFloorChange('all')}
+          className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
+            selectedFloor === 'all'
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+              : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-slate-800'
+          }`}
+        >
+          All Floors
+        </button>
+        {availableFloors.map((floor) => (
+          <button
+            key={floor}
+            onClick={() => onFloorChange(floor)}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
+              selectedFloor === floor
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-slate-800'
+            }`}
+          >
+            {floor}
+          </button>
+        ))}
       </div>
 
       {/* Category Pills & Quick Filter Toggles */}

@@ -1,13 +1,17 @@
-export type SpaceType = 'library' | 'study_room' | 'lab' | 'cafeteria' | 'lounge';
+export type SpaceType = 'library' | 'study_room' | 'lab' | 'cafeteria' | 'lounge' | 'classroom';
 
 export type NoiseLevel = 'silent' | 'quiet' | 'moderate' | 'lively';
+
+export type CampusId = 'sst_bangalore' | 'sst_20acre_new';
 
 export interface CampusLocation {
   id: string;
   code: string;
   name: string;
+  campus_id: CampusId;
   building: string;
-  floor: string;
+  floor: string; // e.g. 'Basement', 'Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Rooftop'
+  floor_level: number; // -1 for basement, 0 for ground, 1, 2, 3, 4 for rooftop
   type: SpaceType;
   description: string;
   capacity: number;
@@ -30,6 +34,7 @@ export interface UserPreferences {
   low_crowd?: boolean;
   type?: SpaceType | 'all';
   max_distance?: number; // minutes
+  floor?: string | 'all';
 }
 
 export interface RecommendationResult {
