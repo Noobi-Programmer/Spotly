@@ -85,7 +85,7 @@ export interface CampusLocation {
   // P2 Resource extensions (Food & Sports)
   wait_time_minutes?: number; // e.g. 4 for Chef Talk
   mess_provider?: 'Cheftalk' | 'The Craving Brew';
-  meal_type?: 'Veg' | 'Non-Veg' | 'Jain' | 'Alternate Mess Meal' | 'Special Thali & Meals';
+  meal_type?: 'Daily Mess Meal' | 'Veg' | 'Non-Veg' | 'Jain' | 'Alternate Mess Meal' | 'Special Thali & Meals';
   equipment_items?: { name: string; available: number; total: number }[];
 
   created_at?: string;

@@ -9,7 +9,7 @@ import { Header } from '@/components/layout/Header';
 import { LandingPageSection } from '@/components/landing/LandingPageSection';
 import { LocationPermissionBanner } from '@/components/layout/LocationPermissionBanner';
 import { SpaceFilters } from '@/components/spaces/SpaceFilters';
-import { SpaceGrid } from '@/components/spaces/SpaceGrid';
+import { BlockWiseSpaceView } from '@/components/spaces/BlockWiseSpaceView';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
 import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
 import { CampusMap } from '@/components/map/CampusMap';
@@ -26,15 +26,11 @@ export default function CampusSpaceApp() {
     locations,
     currentCampusLocations,
     selectedCampus,
-    setSelectedCampus,
     selectedCategory,
     setSelectedCategory,
     selectedFloor,
     setSelectedFloor,
     userCoordinates,
-    locationPermissionState,
-    isRequestingLocation,
-    requestLocation,
     alerts,
     activeAlertTrigger,
     clearAlertTrigger,
@@ -197,14 +193,6 @@ export default function CampusSpaceApp() {
         showLanding={showLanding}
         onToggleLanding={() => setShowLanding(!showLanding)}
         onSelectCategoryNav={(cat) => setSearchQuery('')}
-        selectedCampus={selectedCampus}
-        onCampusChange={setSelectedCampus}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        alerts={alerts}
-        onOpenFinder={() => setIsFindModalOpen(true)}
-        isSimulatorOpen={isSimulatorOpen}
-        onToggleSimulator={() => setIsSimulatorOpen(!isSimulatorOpen)}
       />
 
       {/* Main Container */}
@@ -238,12 +226,7 @@ export default function CampusSpaceApp() {
             </div>
 
             {/* Geolocation Permission Banner */}
-            <LocationPermissionBanner
-              userCoordinates={userCoordinates}
-              locationPermissionState={locationPermissionState}
-              isRequestingLocation={isRequestingLocation}
-              onRequestLocation={requestLocation}
-            />
+            <LocationPermissionBanner />
 
             {/* Hero Recommendation Banner */}
             <RecommendationBanner
@@ -275,15 +258,16 @@ export default function CampusSpaceApp() {
               availableFloors={availableFloors}
             />
 
-            {/* Content View: Cards vs Map */}
+            {/* Content View: Intent-First Block-Wise Canvas vs Collision-Free Map */}
             {activeTab === 'cards' ? (
-              <SpaceGrid
+              <BlockWiseSpaceView
                 locations={filteredLocations}
-                onSelect={(loc) => setSelectedLocation(loc)}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                onSelectLocation={(loc) => setSelectedLocation(loc)}
                 onNotify={handleOpenNotify}
                 onBookSeat={handleOpenBookSeat}
                 highlightedId={topRecommendation?.location.id}
-                onResetFilters={handleResetFilters}
                 userCoordinates={userCoordinates}
               />
             ) : (
@@ -321,7 +305,7 @@ export default function CampusSpaceApp() {
         onSubmitReport={submitCrowdReport}
       />
 
-      {/* 3. BookMyShow Interactive Seat Booking Modal */}
+      {/* 3. Full Room Seat Booking Modal */}
       <SeatBookingModal
         location={targetBookingLocation}
         isOpen={isBookingModalOpen}

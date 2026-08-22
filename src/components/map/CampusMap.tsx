@@ -21,10 +21,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   recommendedLocationId,
 }) => {
   const [hoveredLoc, setHoveredLoc] = useState<CampusLocation | null>(null);
-  // Default to Ground Floor or Upper Basement
   const [mapFloor, setMapFloor] = useState<string>('Ground Floor');
 
-  // Order floors strictly: Upper Basement -> Ground Floor -> Floor 1 -> Floor 2
+  // Strict physical floor order
   const availableFloors = Array.from(new Set(locations.map((l) => l.floor))).sort((a, b) => {
     const idxA = SST_FLOOR_ORDER.indexOf(a);
     const idxB = SST_FLOOR_ORDER.indexOf(b);
@@ -32,14 +31,78 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     return a.localeCompare(b);
   });
 
-  // Dynamic nodes based on floor selection
-  const filteredLocations = locations.filter((l) => {
-    if (mapFloor !== 'all' && l.floor !== mapFloor) return false;
-    return true;
-  });
+  // Dynamic layout calculation to guarantee ZERO collisions
+  const getRenderNodes = () => {
+    if (mapFloor !== 'all') {
+      const floorLocs = locations.filter((l) => l.floor === mapFloor);
+      // If single floor, space items nicely
+      return floorLocs.map((loc, idx) => {
+        let x = loc.coordinates_x;
+        let y = loc.coordinates_y;
+
+        if (mapFloor === 'Ground Floor') {
+          // 2 Rows: Study in Row 1 (y: 180), Sports in Row 2 (y: 380)
+          if (loc.category === 'study') {
+            x = idx === 0 ? 320 : 680;
+            y = 180;
+          } else {
+            const sportsIdx = floorLocs.filter((fl) => fl.category === 'sports').indexOf(loc);
+            x = 220 + sportsIdx * 280;
+            y = 380;
+          }
+        } else if (mapFloor === 'Upper Basement') {
+          if (loc.category === 'food') {
+            const foodIdx = floorLocs.filter((fl) => fl.category === 'food').indexOf(loc);
+            x = 220 + foodIdx * 280;
+            y = 190;
+          } else {
+            x = 500;
+            y = 390;
+          }
+        } else if (mapFloor === 'Floor 1' || mapFloor === 'Floor 2') {
+          x = 220 + (idx % 3) * 280;
+          y = 260;
+        }
+
+        return { ...loc, renderX: x, renderY: y, cardW: 190, cardH: 95 };
+      });
+    }
+
+    // ALL LEVELS VIEW: Arrange in 4 pristine, non-colliding floor lanes
+    const allNodes: (CampusLocation & { renderX: number; renderY: number; cardW: number; cardH: number })[] = [];
+
+    // Lane 1: Floor 2 (y: 95)
+    const f2 = locations.filter((l) => l.floor === 'Floor 2');
+    f2.forEach((loc, i) => {
+      allNodes.push({ ...loc, renderX: 200 + i * 280, renderY: 95, cardW: 180, cardH: 80 });
+    });
+
+    // Lane 2: Floor 1 (y: 215)
+    const f1 = locations.filter((l) => l.floor === 'Floor 1');
+    f1.forEach((loc, i) => {
+      allNodes.push({ ...loc, renderX: 200 + i * 280, renderY: 215, cardW: 180, cardH: 80 });
+    });
+
+    // Lane 3: Ground Floor (y: 345)
+    const fg = locations.filter((l) => l.floor === 'Ground Floor');
+    fg.forEach((loc, i) => {
+      allNodes.push({ ...loc, renderX: 130 + i * 185, renderY: 345, cardW: 165, cardH: 80 });
+    });
+
+    // Lane 4: Upper Basement (y: 475)
+    const fb = locations.filter((l) => l.floor === 'Upper Basement');
+    fb.forEach((loc, i) => {
+      allNodes.push({ ...loc, renderX: 160 + i * 230, renderY: 475, cardW: 175, cardH: 80 });
+    });
+
+    return allNodes;
+  };
+
+  const renderedNodes = getRenderNodes();
+  const filteredList = locations.filter((l) => mapFloor === 'all' || l.floor === mapFloor);
 
   return (
-    <div className="rounded-2xl bg-surface-container-high border border-primary-container p-5 sm:p-7 relative overflow-hidden flex flex-col gap-6 shadow-xl">
+    <div className="rounded-3xl bg-surface-container-high border border-primary-container p-5 sm:p-7 relative overflow-hidden flex flex-col gap-6 shadow-xl">
       {/* Map Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-surface-variant pb-4">
         <div>
@@ -50,26 +113,26 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 : 'New 20-Acre Campus Master Plan Preview'}
             </h3>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-container/60 text-primary border border-primary-container font-mono">
-              ORDERED LEVELS
+              COLLISION-FREE 2D RADAR
             </span>
           </div>
           <p className="text-xs text-on-surface-variant font-inter mt-0.5">
             {selectedCampus === 'sst_bangalore'
-              ? 'Electronic City Phase 1 • Upper Basement → Ground Floor → Floor 1 → Floor 2.'
+              ? 'Electronic City Phase 1 • Select floor level to view room & counter availability.'
               : 'Architectural multi-building master plan for the upcoming 20-acre tech campus.'}
           </p>
         </div>
 
         {/* Floor selector tabs in strict order */}
         {selectedCampus === 'sst_bangalore' && (
-          <div className="flex items-center gap-1.5 bg-surface-container p-1 rounded-xl border border-primary-container/70 text-xs overflow-x-auto max-w-full no-scrollbar">
+          <div className="flex items-center gap-1.5 bg-surface-container p-1 rounded-2xl border border-primary-container/70 text-xs overflow-x-auto max-w-full no-scrollbar">
             {availableFloors.map((floor) => (
               <button
                 key={floor}
                 onClick={() => setMapFloor(floor)}
-                className={`px-3 py-1.5 rounded-lg font-sora font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl font-sora font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   mapFloor === floor
-                    ? 'bg-tertiary text-on-tertiary shadow-sm'
+                    ? 'bg-tertiary text-on-tertiary shadow-sm font-bold'
                     : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
@@ -78,9 +141,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             ))}
             <button
               onClick={() => setMapFloor('all')}
-              className={`px-3 py-1.5 rounded-lg font-sora font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl font-sora font-semibold transition-all cursor-pointer ${
                 mapFloor === 'all'
-                  ? 'bg-tertiary text-on-tertiary shadow-sm'
+                  ? 'bg-tertiary text-on-tertiary shadow-sm font-bold'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
@@ -91,10 +154,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       </div>
 
       {/* SVG Interactive Floorplan Container */}
-      <div className="relative w-full h-[440px] sm:h-[500px] rounded-xl bg-surface border border-primary-container/60 overflow-hidden">
+      <div className="relative w-full h-[520px] sm:h-[580px] rounded-2xl bg-surface border border-primary-container/60 overflow-hidden">
         {/* SVG Floor Layout */}
         <svg
-          viewBox="0 0 1000 560"
+          viewBox="0 0 1000 580"
           className="w-full h-full object-cover select-none"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -114,44 +177,69 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               />
             </pattern>
           </defs>
-          <rect width="1000" height="560" fill="url(#campus-grid-pattern)" />
+          <rect width="1000" height="580" fill="url(#campus-grid-pattern)" />
 
           {/* Floor Perimeter Boundary */}
           <rect
-            x="40"
-            y="30"
-            width="920"
-            height="500"
+            x="30"
+            y="20"
+            width="940"
+            height="540"
             rx="24"
             fill="#151e0a"
             stroke="#31572c"
             strokeWidth="2"
             strokeDasharray="6 6"
           />
-          <text
-            x="70"
-            y="65"
-            fill="#8c9387"
-            fontSize="13"
-            fontWeight="bold"
-            letterSpacing="2"
-            fontFamily="Sora"
-          >
-            {selectedCampus === 'sst_bangalore'
-              ? `SST MAIN CAMPUS • ${mapFloor.toUpperCase()}`
-              : '20-ACRE INNOVATION MASTER PARK'}
-          </text>
 
-          {/* Render Room Nodes */}
-          {filteredLocations.map((loc) => {
+          {/* Floor Level Lane Indicators in "All Levels" view */}
+          {mapFloor === 'all' ? (
+            <g>
+              <text x="50" y="55" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+                FLOOR 2 • CODING LABS
+              </text>
+              <line x1="45" y1="165" x2="945" y2="165" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
+
+              <text x="50" y="180" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+                FLOOR 1 • INNOVATION &amp; READING
+              </text>
+              <line x1="45" y1="285" x2="945" y2="285" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
+
+              <text x="50" y="300" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+                GROUND FLOOR • CLASSROOM &amp; SPORTS
+              </text>
+              <line x1="45" y1="415" x2="945" y2="415" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
+
+              <text x="50" y="430" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+                UPPER BASEMENT • MESS &amp; RECREATION
+              </text>
+            </g>
+          ) : (
+            <text
+              x="60"
+              y="55"
+              fill="#8c9387"
+              fontSize="13"
+              fontWeight="bold"
+              letterSpacing="2"
+              fontFamily="Sora"
+            >
+              {`SST MAIN CAMPUS • ${mapFloor.toUpperCase()}`}
+            </text>
+          )}
+
+          {/* Render Collision-Free Room Nodes */}
+          {renderedNodes.map((loc) => {
             const pct = Math.round(
               (loc.current_occupancy / Math.max(1, loc.capacity)) * 100
             );
             const isRecommended = recommendedLocationId === loc.id;
             const colors = getCrowdColor(pct);
 
-            const nodeX = loc.coordinates_x;
-            const nodeY = loc.coordinates_y;
+            const nodeX = loc.renderX;
+            const nodeY = loc.renderY;
+            const halfW = loc.cardW / 2;
+            const halfH = loc.cardH / 2;
 
             return (
               <g
@@ -161,23 +249,23 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 onMouseLeave={() => setHoveredLoc(null)}
                 className="cursor-pointer transition-all duration-300"
               >
-                {/* Clean Top Match Badge Tag (Replaces awkward circle) */}
+                {/* Clean Top Match Badge Tag */}
                 {isRecommended && (
                   <g>
                     <rect
-                      x={nodeX - 45}
-                      y={nodeY - 65}
-                      width="90"
-                      height="18"
-                      rx="6"
+                      x={nodeX - 40}
+                      y={nodeY - halfH - 14}
+                      width="80"
+                      height="16"
+                      rx="5"
                       fill="#c5cc7b"
                     />
                     <text
                       x={nodeX}
-                      y={nodeY - 53}
+                      y={nodeY - halfH - 3}
                       textAnchor="middle"
                       fill="#1b1d00"
-                      fontSize="9"
+                      fontSize="8.5"
                       fontWeight="bold"
                       fontFamily="Sora"
                     >
@@ -188,11 +276,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
                 {/* Room Geometry Card */}
                 <rect
-                  x={nodeX - 95}
-                  y={nodeY - 45}
-                  width="190"
-                  height="95"
-                  rx="14"
+                  x={nodeX - halfW}
+                  y={nodeY - halfH}
+                  width={loc.cardW}
+                  height={loc.cardH}
+                  rx="12"
                   fill="#19220e"
                   stroke={isRecommended ? '#c5cc7b' : '#31572c'}
                   strokeWidth={isRecommended ? '2.5' : '1.5'}
@@ -201,47 +289,47 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
                 {/* Heat Indicator Color Bar on Top */}
                 <rect
-                  x={nodeX - 95}
-                  y={nodeY - 45}
-                  width="190"
-                  height="5"
-                  rx="2.5"
+                  x={nodeX - halfW}
+                  y={nodeY - halfH}
+                  width={loc.cardW}
+                  height="4.5"
+                  rx="2"
                   fill={colors.hex}
                 />
 
                 {/* Room Name */}
                 <text
                   x={nodeX}
-                  y={nodeY - 16}
+                  y={nodeY - (mapFloor === 'all' ? 10 : 16)}
                   textAnchor="middle"
                   fill="#dbe7c6"
-                  fontSize="11"
+                  fontSize={mapFloor === 'all' ? '10' : '11'}
                   fontWeight="bold"
                   fontFamily="Sora"
                 >
-                  {loc.name.length > 20 ? loc.name.substring(0, 18) + '…' : loc.name}
+                  {loc.name.length > 18 ? loc.name.substring(0, 16) + '…' : loc.name}
                 </text>
 
                 {/* Table and Seat Info */}
                 <text
                   x={nodeX}
-                  y={nodeY + 4}
+                  y={nodeY + (mapFloor === 'all' ? 6 : 4)}
                   textAnchor="middle"
                   fill="#8c9387"
-                  fontSize="9.5"
+                  fontSize={mapFloor === 'all' ? '8.5' : '9.5'}
                   fontFamily="Inter"
                 >
-                  {loc.table_count ? `${loc.table_count} Tables • ` : ''}
+                  {loc.table_count ? `${loc.table_count}T • ` : ''}
                   {loc.capacity} Seats
                 </text>
 
                 {/* Live Occupancy Metric */}
                 <text
                   x={nodeX}
-                  y={nodeY + 26}
+                  y={nodeY + (mapFloor === 'all' ? 22 : 26)}
                   textAnchor="middle"
                   fill={colors.hex}
-                  fontSize="12"
+                  fontSize={mapFloor === 'all' ? '10.5' : '12'}
                   fontWeight="bold"
                   fontFamily="Sora"
                 >
@@ -254,7 +342,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
         {/* Hovered Popover Tooltip */}
         {hoveredLoc && (
-          <div className="absolute top-4 left-4 z-20 p-3.5 rounded-xl bg-surface-container-high border-2 border-primary-container shadow-2xl backdrop-blur-md max-w-xs animate-in fade-in">
+          <div className="absolute top-4 left-4 z-20 p-3.5 rounded-2xl bg-surface-container-high border-2 border-primary-container shadow-2xl backdrop-blur-md max-w-xs animate-in fade-in">
             <div className="flex items-center justify-between gap-2 mb-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-primary font-sora">
                 {hoveredLoc.type.replace('_', ' ')} • {hoveredLoc.floor}
@@ -302,21 +390,21 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h4 className="font-sora text-sm font-bold text-on-surface">
-            Spaces on {mapFloor === 'all' ? 'All Levels' : mapFloor} ({filteredLocations.length})
+            Spaces on {mapFloor === 'all' ? 'All Levels' : mapFloor} ({filteredList.length})
           </h4>
           <span className="text-xs text-on-surface-variant font-inter">
             Click any space to view live tables or book a seat by serial number
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredLocations.map((loc) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {filteredList.map((loc) => {
             const isRec = recommendedLocationId === loc.id;
             return (
               <div
                 key={loc.id}
                 onClick={() => onSelectLocation(loc)}
-                className={`p-3.5 rounded-xl bg-surface-container border cursor-pointer transition-all hover:bg-surface-container-highest flex flex-col justify-between gap-2.5 ${
+                className={`p-3.5 rounded-2xl bg-surface-container border cursor-pointer transition-all hover:bg-surface-container-highest flex flex-col justify-between gap-2.5 ${
                   isRec ? 'border-tertiary shadow-md shadow-tertiary/10' : 'border-primary-container/70'
                 }`}
               >
