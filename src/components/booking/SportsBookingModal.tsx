@@ -15,6 +15,8 @@ import {
   Sparkles,
   Flame,
   Zap,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { createSportsBookingInDb } from '@/lib/supabase/client';
@@ -93,19 +95,27 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
 
   const courtSlots = getCourtSlots();
   const equipment = location.equipment_items || [
-    { name: 'Standard Balls / Shuttles', available: 4, total: 6 },
-    { name: 'Rackets / Bats', available: 4, total: 6 },
+    { name: 'Footballs & Cricket Balls', available: 4, total: 6 },
+    { name: 'Bats & Rackets', available: 4, total: 6 },
   ];
 
-  const handleToggleGear = (name: string, available: number) => {
+  const handleIncrementGear = (name: string, available: number) => {
     setSelectedGear((prev) => {
       const current = prev[name] || 0;
-      if (current >= available) {
+      if (current >= available) return prev;
+      return { ...prev, [name]: current + 1 };
+    });
+  };
+
+  const handleDecrementGear = (name: string) => {
+    setSelectedGear((prev) => {
+      const current = prev[name] || 0;
+      if (current <= 1) {
         const next = { ...prev };
         delete next[name];
         return next;
       }
-      return { ...prev, [name]: current + 1 };
+      return { ...prev, [name]: current - 1 };
     });
   };
 
@@ -231,11 +241,11 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Equipment Checkout Station */}
+          {/* Section 2: Equipment Checkout Station with +/- Stepper */}
           <div>
             <label className="text-xs font-sora font-bold text-on-surface uppercase tracking-wider block mb-2 flex items-center gap-1.5">
               <Dumbbell className="w-3.5 h-3.5 text-primary" />
-              2. Equipment &amp; Gear Checkout Station
+              2. Equipment &amp; Gear Checkout Station (+/- Quantity)
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {equipment.map((item) => {
@@ -245,31 +255,43 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
                 return (
                   <div
                     key={item.name}
-                    className={`p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
+                    className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
                       isSelected
-                        ? 'bg-primary-container/40 border-primary'
+                        ? 'bg-primary-container/40 border-primary shadow-sm'
                         : 'bg-surface-container border-primary-container/70'
                     }`}
                   >
                     <div>
                       <h4 className="font-sora text-xs font-bold text-on-surface">{item.name}</h4>
-                      <p className="text-[11px] text-on-surface-variant font-inter">
-                        <strong className="text-primary font-mono">{item.available}</strong> of {item.total} free in gear locker
+                      <p className="text-[11px] text-on-surface-variant font-inter mt-0.5">
+                        <strong className="text-primary font-mono">{item.available}</strong> of {item.total} free in locker
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {count > 0 && (
-                        <span className="font-mono text-xs font-bold text-primary bg-primary-container px-2 py-1 rounded-lg">
-                          {count} requested
-                        </span>
-                      )}
+                    {/* Stepper Controls (+ / -) */}
+                    <div className="flex items-center gap-1.5 bg-surface-container-high p-1 rounded-xl border border-primary-container/60">
                       <button
                         type="button"
-                        onClick={() => handleToggleGear(item.name, item.available)}
-                        className="px-2.5 py-1 rounded-lg bg-surface-container-high hover:bg-surface-bright text-xs font-sora font-bold border border-primary-container cursor-pointer transition-all active:scale-95 text-on-surface"
+                        disabled={count <= 0}
+                        onClick={() => handleDecrementGear(item.name)}
+                        className="w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-bright flex items-center justify-center font-bold text-xs text-on-surface disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed active:scale-95 transition-all"
+                        title="Decrease quantity"
                       >
-                        {count > 0 ? '+ Add' : 'Claim'}
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+
+                      <span className="w-6 text-center font-mono text-xs font-bold text-primary">
+                        {count}
+                      </span>
+
+                      <button
+                        type="button"
+                        disabled={count >= item.available}
+                        onClick={() => handleIncrementGear(item.name, item.available)}
+                        className="w-7 h-7 rounded-lg bg-primary text-on-primary hover:bg-primary-container flex items-center justify-center font-bold text-xs disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm"
+                        title="Increase quantity"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -338,6 +360,11 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div className="text-xs text-on-surface-variant font-inter">
                 Selected: <strong className="text-on-surface font-sora">{selectedSlot}</strong> ({durationMinutes} mins)
+                {Object.keys(selectedGear).length > 0 && (
+                  <span className="text-primary font-bold block sm:inline sm:ml-2">
+                    • Gear: {Object.entries(selectedGear).map(([g, c]) => `${c}x ${g}`).join(', ')}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -354,7 +381,7 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
                   className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>Confirm Court Slot &amp; Gear</span>
+                  <span>Confirm Slot &amp; Gear</span>
                 </button>
               </div>
             </div>

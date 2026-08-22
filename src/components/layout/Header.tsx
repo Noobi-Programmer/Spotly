@@ -70,12 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
               S
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-sora font-bold text-xl text-primary tracking-tight">Spotly</span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-surface-container text-primary border border-primary-container font-mono">
-                  SST LIVE
-                </span>
-              </div>
+              <span className="font-sora font-bold text-xl text-primary tracking-tight">Spotly</span>
             </div>
           </button>
 
