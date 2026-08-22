@@ -20,6 +20,13 @@ export type ConfidenceLevel = 'high' | 'medium' | 'low';
 
 export type CampusId = 'sst_bangalore' | 'sst_20acre_new';
 
+export interface HourlyTrafficPoint {
+  hour: string; // e.g. '8 AM', '12 PM'
+  hourNum: number; // 8 to 22
+  occupancyPercentage: number; // 0 to 100
+  isCurrentHour?: boolean;
+}
+
 export interface SeatInfo {
   id: string; // e.g. 'T1-S1'
   serial_number: string; // e.g. 'T1-S1'
@@ -73,11 +80,12 @@ export interface CampusLocation {
   report_count: number;
   last_reported_minutes_ago: number;
   confidence: ConfidenceLevel;
+  hourly_traffic?: HourlyTrafficPoint[]; // 8 AM to 10 PM traffic pattern
 
   // P2 Resource extensions (Food & Sports)
   wait_time_minutes?: number; // e.g. 4 for Chef Talk
   mess_provider?: 'Cheftalk' | 'The Craving Brew';
-  meal_type?: 'Veg' | 'Non-Veg' | 'Jain' | 'Cafe & Snacks';
+  meal_type?: 'Veg' | 'Non-Veg' | 'Jain' | 'Alternate Mess Meal' | 'Special Thali & Meals';
   equipment_items?: { name: string; available: number; total: number }[];
 
   created_at?: string;

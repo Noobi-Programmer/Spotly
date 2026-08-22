@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CampusLocation } from '@/types';
 import { OccupancyBadge } from './OccupancyBadge';
+import { HourlyTrafficChart } from './HourlyTrafficChart';
 import {
   Volume2,
   VolumeX,
@@ -27,7 +28,9 @@ import {
   Salad,
   Sun,
   Gamepad2,
-  Sparkles,
+  BarChart2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   UserCoordinates,
@@ -52,6 +55,8 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
   highlighted = false,
   userCoordinates,
 }) => {
+  const [showHourlyTraffic, setShowHourlyTraffic] = useState(false);
+
   const percentage = Math.round(
     (location.current_occupancy / Math.max(1, location.capacity)) * 100
   );
@@ -76,7 +81,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
       return <ChefHat className="w-4 h-4 text-tertiary" />;
     }
     if (location.mess_provider === 'The Craving Brew') {
-      return <Coffee className="w-4 h-4 text-tertiary" />;
+      return <UtensilsCrossed className="w-4 h-4 text-tertiary" />;
     }
     if (location.name.includes('Block B') || location.type === 'lab') {
       return <Code2 className="w-4 h-4 text-primary" />;
@@ -172,7 +177,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
                 </div>
               ) : (
                 <div className="w-7 h-7 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">
-                  ☕
+                  🍱
                 </div>
               )}
               <div>
@@ -194,13 +199,13 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
                   ? 'bg-tertiary-container/40 text-tertiary border-tertiary'
                   : location.meal_type === 'Jain'
                   ? 'bg-secondary-container/40 text-secondary border-secondary'
-                  : 'bg-surface-container-highest text-on-surface border-outline'
+                  : 'bg-primary-container/30 text-primary border-primary'
               }`}
             >
               {location.meal_type === 'Veg' && <Salad className="w-3 h-3" />}
               {location.meal_type === 'Non-Veg' && <Flame className="w-3 h-3" />}
               {location.meal_type === 'Jain' && <Leaf className="w-3 h-3" />}
-              {location.meal_type === 'Cafe & Snacks' && <Coffee className="w-3 h-3" />}
+              {location.meal_type === 'Alternate Mess Meal' && <UtensilsCrossed className="w-3 h-3" />}
               <span>{location.meal_type}</span>
             </span>
           </div>
@@ -238,6 +243,26 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           capacity={location.capacity}
           trend={location.trend}
         />
+      </div>
+
+      {/* Expandable Hourly Traffic Chart Toggle */}
+      <div className="mb-3.5">
+        <button
+          onClick={() => setShowHourlyTraffic(!showHourlyTraffic)}
+          className="w-full flex items-center justify-between p-2 rounded-xl bg-surface-container-high/80 hover:bg-surface-bright text-xs text-on-surface-variant hover:text-on-surface transition-all font-sora font-semibold border border-primary-container/60 cursor-pointer"
+        >
+          <span className="flex items-center gap-1.5">
+            <BarChart2 className="w-3.5 h-3.5 text-tertiary" />
+            <span>Hourly Traffic &amp; Rush Times</span>
+          </span>
+          {showHourlyTraffic ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
+
+        {showHourlyTraffic && (
+          <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
+            <HourlyTrafficChart location={location} compact />
+          </div>
+        )}
       </div>
 
       {/* Amenity Badges & Action Buttons */}

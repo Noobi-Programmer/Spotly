@@ -10,7 +10,7 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
   // =========================================================================
 
   // -------------------------------------------------------------------------
-  // 1. UPPER BASEMENT (Mess / Cafeteria Floor & Indoor Play Zone)
+  // 1. UPPER BASEMENT (Mess Floor: Cheftalk + The Craving Brew & Indoor Play Zone)
   // -------------------------------------------------------------------------
   {
     id: 'loc-sst-chef-c1',
@@ -22,7 +22,7 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     floor: 'Upper Basement',
     floor_level: -1,
     type: 'food_counter',
-    description: 'Primary mess counter serving authentic vegetarian hot meals, paneer curries, dal, and fresh rotis.',
+    description: 'Primary mess counter serving authentic vegetarian daily hot meals, paneer gravies, dal tadka, and fresh phulkas.',
     capacity: 48,
     current_occupancy: 26, // 54% crowd
     table_count: 12,
@@ -45,6 +45,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 19,
     last_reported_minutes_ago: 1,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 25 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 15 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 60 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 85 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 70 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 20 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 35 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 80 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 15 },
+    ],
   },
   {
     id: 'loc-sst-chef-c2',
@@ -56,7 +67,7 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     floor: 'Upper Basement',
     floor_level: -1,
     type: 'food_counter',
-    description: 'Dedicated non-vegetarian mess station serving chicken curry, egg biryani, and roasted specials.',
+    description: 'Dedicated non-vegetarian mess station serving chicken curry, egg biryani, egg roast, and chef specials.',
     capacity: 48,
     current_occupancy: 32, // 66% crowd
     table_count: 12,
@@ -79,6 +90,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 14,
     last_reported_minutes_ago: 2,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 20 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 10 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 65 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 90 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 75 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 15 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 40 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 85 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 20 },
+    ],
   },
   {
     id: 'loc-sst-chef-jain',
@@ -113,23 +135,34 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 8,
     last_reported_minutes_ago: 3,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 15 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 10 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 45 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 60 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 40 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 10 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 25 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 55 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 10 },
+    ],
   },
   {
     id: 'loc-sst-craving-brew',
     code: 'SST-FOOD-BREW',
-    name: 'The Craving Brew (Alternate Mess & Cafe)',
+    name: 'The Craving Brew (Alternate Mess Provider)',
     campus_id: 'sst_bangalore',
     category: 'food',
     building: 'Upper Basement',
     floor: 'Upper Basement',
     floor_level: -1,
     type: 'cafeteria',
-    description: 'Alternate mess provider and artisan cafe: espresso bar, iced teas, specialty cold brews, and grilled sandwiches.',
-    capacity: 30,
-    current_occupancy: 24, // 80% crowd (High demand)
+    description: 'Official alternate student mess provider serving daily wholesome thalis, curated combo meals, executive meal platters, and hot sides.',
+    capacity: 32,
+    current_occupancy: 25, // 78% crowd (High demand)
     table_count: 10,
     mess_provider: 'The Craving Brew',
-    meal_type: 'Cafe & Snacks',
+    meal_type: 'Alternate Mess Meal',
     is_quiet: false,
     has_charging: true,
     has_fast_wifi: true,
@@ -141,12 +174,23 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     distance_minutes: 2,
     status: 'full',
     trend: 'getting_busier',
-    wait_time_minutes: 12, // ~12 min wait
-    best_time_to_go: 'Around 3:45 PM',
-    peak_hours: '11:00 AM – 1:30 PM & 4:30 PM – 6:30 PM',
-    report_count: 17,
+    wait_time_minutes: 10, // ~10 min wait
+    best_time_to_go: 'Around 2:15 PM (Post peak lunch wave)',
+    peak_hours: '1:00 PM – 2:15 PM & 8:00 PM – 9:30 PM',
+    report_count: 18,
     last_reported_minutes_ago: 1,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 30 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 25 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 70 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 92 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 80 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 35 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 50 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 88 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 30 },
+    ],
   },
   {
     id: 'loc-sst-play-zone',
@@ -181,6 +225,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     equipment_items: [
       { name: 'Table Tennis Paddles', available: 4, total: 6 },
       { name: 'Foosballs', available: 2, total: 2 },
+    ],
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 10 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 10 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 40 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 65 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 55 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 35 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 75 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 80 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 40 },
     ],
   },
 
@@ -218,6 +273,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 10,
     last_reported_minutes_ago: 3,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 15 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 75 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 80 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 60 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 85 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 35 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 25 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 20 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 10 },
+    ],
   },
   {
     id: 'loc-sst-g-reading',
@@ -249,6 +315,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 8,
     last_reported_minutes_ago: 4,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 20 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 30 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 45 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 55 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 75 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 65 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 40 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 30 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 15 },
+    ],
   },
 
   // Outdoor Sports Row (y: 360)
@@ -286,6 +363,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
       { name: 'Footballs', available: 3, total: 5 },
       { name: 'Cricket Kits', available: 2, total: 3 },
     ],
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 25 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 10 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 5 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 5 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 10 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 35 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 85 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 80 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 30 },
+    ],
   },
   {
     id: 'loc-sst-badminton-court',
@@ -321,6 +409,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
       { name: 'Badminton Rackets', available: 6, total: 8 },
       { name: 'Volleyballs', available: 2, total: 3 },
     ],
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 40 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 15 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 10 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 10 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 15 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 40 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 80 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 75 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 20 },
+    ],
   },
   {
     id: 'loc-sst-basketball-court',
@@ -354,6 +453,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     confidence: 'high',
     equipment_items: [
       { name: 'Basketballs', available: 6, total: 8 },
+    ],
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 30 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 15 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 10 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 15 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 20 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 45 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 85 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 80 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 25 },
     ],
   },
 
@@ -390,6 +500,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 15,
     last_reported_minutes_ago: 2,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 25 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 55 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 80 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 85 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 90 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 75 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 60 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 50 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 30 },
+    ],
   },
   {
     id: 'loc-sst-1f-reading',
@@ -421,6 +542,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 12,
     last_reported_minutes_ago: 1,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 15 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 35 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 55 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 70 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 65 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 50 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 45 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 35 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 20 },
+    ],
   },
   {
     id: 'loc-sst-1f-outside-reading',
@@ -452,6 +584,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 7,
     last_reported_minutes_ago: 4,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 20 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 25 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 60 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 70 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 55 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 40 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 35 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 20 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 10 },
+    ],
   },
 
   // -------------------------------------------------------------------------
@@ -487,6 +630,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 9,
     last_reported_minutes_ago: 2,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 15 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 65 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 75 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 50 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 80 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 40 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 30 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 20 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 10 },
+    ],
   },
   {
     id: 'loc-sst-2f-2b',
@@ -518,6 +672,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 16,
     last_reported_minutes_ago: 1,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 20 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 70 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 85 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 60 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 90 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 70 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 45 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 30 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 15 },
+    ],
   },
   {
     id: 'loc-sst-2f-2c',
@@ -549,6 +714,17 @@ export const INITIAL_CAMPUS_LOCATIONS: CampusLocation[] = [
     report_count: 8,
     last_reported_minutes_ago: 3,
     confidence: 'high',
+    hourly_traffic: [
+      { hour: '8 AM', hourNum: 8, occupancyPercentage: 15 },
+      { hour: '10 AM', hourNum: 10, occupancyPercentage: 55 },
+      { hour: '12 PM', hourNum: 12, occupancyPercentage: 65 },
+      { hour: '1 PM', hourNum: 13, occupancyPercentage: 45 },
+      { hour: '2 PM', hourNum: 14, occupancyPercentage: 70 },
+      { hour: '4 PM', hourNum: 16, occupancyPercentage: 40 },
+      { hour: '6 PM', hourNum: 18, occupancyPercentage: 30 },
+      { hour: '8 PM', hourNum: 20, occupancyPercentage: 20 },
+      { hour: '10 PM', hourNum: 22, occupancyPercentage: 10 },
+    ],
   },
 
   // =========================================================================

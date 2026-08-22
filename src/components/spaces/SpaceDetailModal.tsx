@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { CampusLocation } from '@/types';
 import { OccupancyBadge } from './OccupancyBadge';
+import { HourlyTrafficChart } from './HourlyTrafficChart';
 import {
   X,
   Navigation,
@@ -16,9 +17,14 @@ import {
   Sparkles,
   Users,
   Dumbbell,
-  Utensils,
+  UtensilsCrossed,
+  ChefHat,
+  Coffee,
   Check,
   Armchair,
+  Salad,
+  Flame,
+  Leaf,
 } from 'lucide-react';
 
 interface SpaceDetailModalProps {
@@ -52,8 +58,8 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-6 sm:p-8 no-scrollbar">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-6 sm:p-8 no-scrollbar">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -101,25 +107,40 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           {location.description}
         </p>
 
-        {/* Mess Provider Callout */}
+        {/* Mess Provider Callout (Cheftalk vs The Craving Brew) */}
         {location.mess_provider && (
-          <div className="p-3.5 rounded-xl bg-surface-container border border-primary-container mb-5 flex items-center justify-between">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider font-sora block">
-                MESS PROVIDER
-              </span>
-              <h4 className="font-sora text-sm font-bold text-on-surface">
-                {location.mess_provider}
-              </h4>
+          <div className="p-4 rounded-2xl bg-surface-container border border-primary-container mb-5 flex items-center justify-between shadow-inner">
+            <div className="flex items-center gap-2.5">
+              {location.mess_provider === 'Cheftalk' ? (
+                <div className="w-8 h-8 rounded-xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-bold text-sm">
+                  👨‍🍳
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm">
+                  🍱
+                </div>
+              )}
+              <div>
+                <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider font-sora block">
+                  {location.mess_provider === 'Cheftalk' ? 'PRIMARY MESS PROVIDER' : 'OFFICIAL ALTERNATE MESS PROVIDER'}
+                </span>
+                <h4 className="font-sora text-sm font-bold text-on-surface">
+                  {location.mess_provider}
+                </h4>
+              </div>
             </div>
-            <span className="px-3 py-1 rounded-full bg-primary-container text-primary font-mono text-xs font-bold border border-primary">
-              {location.meal_type}
+
+            <span className="px-3 py-1 rounded-full bg-primary-container text-primary font-mono text-xs font-bold border border-primary flex items-center gap-1">
+              {location.meal_type === 'Veg' && <Salad className="w-3.5 h-3.5" />}
+              {location.meal_type === 'Non-Veg' && <Flame className="w-3.5 h-3.5" />}
+              {location.meal_type === 'Jain' && <Leaf className="w-3.5 h-3.5" />}
+              <span>{location.meal_type}</span>
             </span>
           </div>
         )}
 
         {/* Occupancy Status Section */}
-        <div className="p-4 rounded-xl bg-surface-container border border-primary-container mb-5">
+        <div className="p-4 rounded-2xl bg-surface-container border border-primary-container mb-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-sora">
               Live Crowd Telemetry
@@ -137,29 +158,13 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           />
         </div>
 
-        {/* Predictive Intelligence: Best Time to Go */}
-        {location.best_time_to_go && (
-          <div className="p-4 rounded-xl bg-surface-container border border-primary-container mb-5">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-tertiary" />
-              <h4 className="font-sora text-xs font-bold uppercase tracking-wider text-tertiary">
-                Best Time to Go (Predictive)
-              </h4>
-            </div>
-            <div className="text-sm font-bold text-on-surface mb-1 font-inter">
-              {location.best_time_to_go}
-            </div>
-            {location.peak_hours && (
-              <div className="text-xs text-on-surface-variant flex items-center gap-1.5 font-inter">
-                <Clock className="w-3.5 h-3.5 text-on-surface-variant" />
-                <span>Peak hours: {location.peak_hours}</span>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Hourly Traffic Chart (Google Popular Times Style) */}
+        <div className="mb-5">
+          <HourlyTrafficChart location={location} />
+        </div>
 
         {/* Community 1-Tap Crowd Reporting */}
-        <div className="p-4 rounded-xl bg-surface-container border border-primary-container/70 mb-5">
+        <div className="p-4 rounded-2xl bg-surface-container border border-primary-container/70 mb-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-sora flex items-center gap-1.5">
               <Users className="w-3.5 h-3.5 text-primary" />
@@ -205,7 +210,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
 
         {/* Sports Gear Details */}
         {location.equipment_items && location.equipment_items.length > 0 && (
-          <div className="p-4 rounded-xl bg-surface-container border border-primary-container mb-5">
+          <div className="p-4 rounded-2xl bg-surface-container border border-primary-container mb-5">
             <div className="text-xs font-bold uppercase tracking-wider text-primary mb-2.5 flex items-center gap-1.5 font-sora">
               <Dumbbell className="w-3.5 h-3.5" />
               Available Gear for Checkout
