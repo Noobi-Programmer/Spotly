@@ -59,7 +59,7 @@ export default function CampusSpaceApp() {
     runPresetScenario,
   } = useCampusStore();
 
-  // DEFAULT TO LANDING PAGE (STITCH 1:1 EXPERIENCE)
+  // DEFAULT TO LANDING PAGE
   const [showLanding, setShowLanding] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [spaciousOnly, setSpaciousOnly] = useState(false);
@@ -73,14 +73,23 @@ export default function CampusSpaceApp() {
 
   // Compute top recommendation within active campus using live coordinates & category
   const rankedSpaces = useMemo(() => {
-    return rankSpaces(currentCampusLocations, userPreferences, userCoordinates);
-  }, [currentCampusLocations, userPreferences, userCoordinates]);
+    const pool =
+      selectedCategory !== 'all'
+        ? currentCampusLocations.filter((l) => l.category === selectedCategory)
+        : currentCampusLocations;
+    return rankSpaces(pool.length > 0 ? pool : currentCampusLocations, userPreferences, userCoordinates);
+  }, [currentCampusLocations, selectedCategory, userPreferences, userCoordinates]);
 
   const topRecommendation = rankedSpaces.length > 0 ? rankedSpaces[0] : null;
 
   // Filter locations for the grid / map
   const filteredLocations = useMemo(() => {
     return currentCampusLocations.filter((loc) => {
+      // Category Filter (Study / Food / Sports)
+      if (selectedCategory !== 'all' && loc.category !== selectedCategory) {
+        return false;
+      }
+
       // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -124,6 +133,7 @@ export default function CampusSpaceApp() {
     });
   }, [
     currentCampusLocations,
+    selectedCategory,
     searchQuery,
     selectedFloor,
     filterType,
@@ -187,7 +197,13 @@ export default function CampusSpaceApp() {
                 <span>Back to Overview Landing</span>
               </button>
               <div className="text-xs text-on-surface-variant font-inter">
-                Live Interactive Mode • {currentCampusLocations.length} Campus Spaces Monitored
+                {selectedCategory === 'all'
+                  ? `All Campus Resources (${filteredLocations.length})`
+                  : selectedCategory === 'study'
+                  ? `📚 Study & Focus Spaces (${filteredLocations.length})`
+                  : selectedCategory === 'food'
+                  ? `🍴 Cafeteria & Food Queues (${filteredLocations.length})`
+                  : `🏀 Sports & Recreation (${filteredLocations.length})`}
               </div>
             </div>
 
@@ -235,7 +251,7 @@ export default function CampusSpaceApp() {
               />
             ) : (
               <CampusMap
-                locations={currentCampusLocations}
+                locations={filteredLocations.length > 0 ? filteredLocations : currentCampusLocations}
                 selectedCampus={selectedCampus}
                 onSelectLocation={(loc) => setSelectedLocation(loc)}
                 recommendedLocationId={topRecommendation?.location.id}
@@ -312,7 +328,7 @@ export default function CampusSpaceApp() {
         onRunPreset={runPresetScenario}
       />
 
-      {/* Footer matching Stitch Layout */}
+      {/* Footer */}
       <footer className="w-full border-t border-primary-container bg-surface-container-low py-10 px-4 sm:px-8 lg:px-12 mt-16 text-xs text-on-surface-variant font-inter">
         <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">

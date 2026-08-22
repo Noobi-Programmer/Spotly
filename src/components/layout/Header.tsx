@@ -3,7 +3,7 @@
 import React from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
 import { CampusId } from '@/types';
-import { Sparkles, Bell, Sliders, Layout, Compass, Search } from 'lucide-react';
+import { Sparkles, Bell, Sliders, Layout, Compass } from 'lucide-react';
 
 interface HeaderProps {
   onOpenActiveAlerts: () => void;
@@ -17,18 +17,24 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleLanding,
 }) => {
   const {
-    campusOccupancyPercentage,
-    totalAvailableSeats,
     selectedCampus,
     setSelectedCampus,
+    selectedCategory,
+    setSelectedCategory,
     alerts,
     setIsFindModalOpen,
     isSimulatorOpen,
     setIsSimulatorOpen,
-    setSelectedCategory,
   } = useCampusStore();
 
   const activeAlertCount = alerts.filter((a) => a.is_active).length;
+
+  const handleNavCategory = (cat: 'study' | 'food' | 'sports') => {
+    setSelectedCategory(cat);
+    if (showLanding && onToggleLanding) {
+      onToggleLanding(); // Automatically enter the live app view with this category filter active!
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-primary-container bg-surface-container-low/95 backdrop-blur-md">
@@ -36,7 +42,9 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Brand & Campus Switcher */}
         <div className="flex items-center gap-3">
           <button
-            onClick={onToggleLanding}
+            onClick={() => {
+              if (!showLanding && onToggleLanding) onToggleLanding();
+            }}
             className="flex items-center gap-2.5 text-left cursor-pointer focus:outline-none"
           >
             <div className="w-9 h-9 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-lg shadow-md">
@@ -70,34 +78,39 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center Links (Matching Stitch Desktop Nav) */}
+        {/* Center Category Filter Links (Direct Actionable Switching) */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-inter">
           <button
-            onClick={() => {
-              if (showLanding && onToggleLanding) onToggleLanding();
-              setSelectedCategory('study');
-            }}
-            className="text-on-surface hover:text-tertiary transition-colors cursor-pointer"
+            onClick={() => handleNavCategory('study')}
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+              !showLanding && selectedCategory === 'study'
+                ? 'text-primary border-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface border-transparent'
+            }`}
           >
-            Study Spaces
+            <span>📚 Study Spaces</span>
           </button>
+
           <button
-            onClick={() => {
-              if (showLanding && onToggleLanding) onToggleLanding();
-              setSelectedCategory('food');
-            }}
-            className="text-on-surface hover:text-tertiary transition-colors cursor-pointer"
+            onClick={() => handleNavCategory('food')}
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+              !showLanding && selectedCategory === 'food'
+                ? 'text-primary border-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface border-transparent'
+            }`}
           >
-            Food &amp; Queues
+            <span>🍴 Food &amp; Queues</span>
           </button>
+
           <button
-            onClick={() => {
-              if (showLanding && onToggleLanding) onToggleLanding();
-              setSelectedCategory('sports');
-            }}
-            className="text-on-surface hover:text-tertiary transition-colors cursor-pointer"
+            onClick={() => handleNavCategory('sports')}
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+              !showLanding && selectedCategory === 'sports'
+                ? 'text-primary border-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface border-transparent'
+            }`}
           >
-            Sports &amp; Courts
+            <span>🏀 Sports &amp; Courts</span>
           </button>
         </nav>
 
@@ -118,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Open App / Find My Space Pill (Matching Stitch Hero Button) */}
+          {/* Open App / Find My Space Pill */}
           <button
             onClick={() => setIsFindModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs sm:text-sm shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
