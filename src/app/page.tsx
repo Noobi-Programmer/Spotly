@@ -192,6 +192,7 @@ export default function CampusSpaceApp() {
         onOpenActiveAlerts={() => setIsActiveAlertsDrawerOpen(true)}
         showLanding={showLanding}
         onToggleLanding={() => setShowLanding(!showLanding)}
+        onSelectCategoryNav={(cat) => setSearchQuery('')}
       />
 
       {/* Main Container */}
@@ -232,6 +233,7 @@ export default function CampusSpaceApp() {
               recommendation={topRecommendation}
               onSelect={(loc) => setSelectedLocation(loc)}
               onNotify={handleOpenNotify}
+              onBookSeat={handleOpenBookSeat}
               onOpenFinder={() => setIsFindModalOpen(true)}
             />
 
@@ -361,7 +363,7 @@ export default function CampusSpaceApp() {
       <footer className="w-full border-t border-primary-container bg-surface-container-low py-10 px-4 sm:px-8 lg:px-12 mt-16 text-xs text-on-surface-variant font-inter">
         <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-sm">
+            <div className="w-8 h-8 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-sm shadow-md">
               S
             </div>
             <div>

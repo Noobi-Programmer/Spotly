@@ -3,18 +3,30 @@
 import React from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
 import { CampusId } from '@/types';
-import { Sparkles, Bell, Sliders, Layout, Compass } from 'lucide-react';
+import {
+  Sparkles,
+  Bell,
+  Sliders,
+  Layout,
+  Compass,
+  BookOpen,
+  UtensilsCrossed,
+  Trophy,
+  Layers,
+} from 'lucide-react';
 
 interface HeaderProps {
   onOpenActiveAlerts: () => void;
   showLanding?: boolean;
   onToggleLanding?: () => void;
+  onSelectCategoryNav?: (cat: 'study' | 'food' | 'sports') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenActiveAlerts,
   showLanding = false,
   onToggleLanding,
+  onSelectCategoryNav,
 }) => {
   const {
     selectedCampus,
@@ -31,6 +43,9 @@ export const Header: React.FC<HeaderProps> = ({
 
   const handleNavCategory = (cat: 'study' | 'food' | 'sports') => {
     setSelectedCategory(cat);
+    if (onSelectCategoryNav) {
+      onSelectCategoryNav(cat);
+    }
     if (showLanding && onToggleLanding) {
       onToggleLanding(); // Automatically enter the live app view with this category filter active!
     }
@@ -47,7 +62,7 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             className="flex items-center gap-2.5 text-left cursor-pointer focus:outline-none"
           >
-            <div className="w-9 h-9 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-lg shadow-md">
+            <div className="w-9 h-9 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-lg shadow-md shadow-primary/10">
               S
             </div>
             <div>
@@ -69,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="bg-transparent text-xs font-semibold text-tertiary hover:text-tertiary-fixed focus:outline-none cursor-pointer"
             >
               <option value="sst_bangalore" className="bg-surface-container text-on-surface">
-                📍 SST Bangalore
+                📍 SST Bangalore (Main)
               </option>
               <option value="sst_20acre_new" className="bg-surface-container text-on-surface">
                 🚀 New 20-Acre Campus
@@ -78,39 +93,42 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center Category Filter Links (Direct Actionable Switching) */}
+        {/* Center Category Filter Links with Distinct Lucide Icons & Active Underline */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-inter">
           <button
             onClick={() => handleNavCategory('study')}
-            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-2 ${
               !showLanding && selectedCategory === 'study'
-                ? 'text-primary border-primary shadow-sm'
+                ? 'text-primary border-primary shadow-sm font-bold'
                 : 'text-on-surface-variant hover:text-on-surface border-transparent'
             }`}
           >
-            <span>📚 Study Spaces</span>
+            <BookOpen className={`w-4 h-4 ${!showLanding && selectedCategory === 'study' ? 'text-primary' : 'text-on-surface-variant'}`} />
+            <span>Study Spaces</span>
           </button>
 
           <button
             onClick={() => handleNavCategory('food')}
-            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-2 ${
               !showLanding && selectedCategory === 'food'
-                ? 'text-primary border-primary shadow-sm'
+                ? 'text-tertiary border-tertiary shadow-sm font-bold'
                 : 'text-on-surface-variant hover:text-on-surface border-transparent'
             }`}
           >
-            <span>🍴 Food &amp; Queues</span>
+            <UtensilsCrossed className={`w-4 h-4 ${!showLanding && selectedCategory === 'food' ? 'text-tertiary' : 'text-on-surface-variant'}`} />
+            <span>Food &amp; Queues</span>
           </button>
 
           <button
             onClick={() => handleNavCategory('sports')}
-            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-2 ${
               !showLanding && selectedCategory === 'sports'
-                ? 'text-primary border-primary shadow-sm'
+                ? 'text-secondary border-secondary shadow-sm font-bold'
                 : 'text-on-surface-variant hover:text-on-surface border-transparent'
             }`}
           >
-            <span>🏀 Sports &amp; Courts</span>
+            <Trophy className={`w-4 h-4 ${!showLanding && selectedCategory === 'sports' ? 'text-secondary' : 'text-on-surface-variant'}`} />
+            <span>Sports &amp; Courts</span>
           </button>
         </nav>
 

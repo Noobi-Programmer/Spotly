@@ -12,14 +12,22 @@ import {
   Eye,
   BookOpen,
   Coffee,
-  Laptop,
+  Code2,
   Users,
   GraduationCap,
-  Utensils,
+  UtensilsCrossed,
+  ChefHat,
+  Trophy,
   Dumbbell,
   Clock,
   CheckCircle2,
   Armchair,
+  Flame,
+  Leaf,
+  Salad,
+  Sun,
+  Gamepad2,
+  Sparkles,
 } from 'lucide-react';
 import {
   UserCoordinates,
@@ -62,92 +70,143 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
     displayMinutes = metersToWalkingMinutes(distMeters);
   }
 
-  const getTypeIcon = () => {
-    switch (location.type) {
-      case 'library':
-        return <BookOpen className="w-3.5 h-3.5" />;
-      case 'study_room':
-        return <Users className="w-3.5 h-3.5" />;
-      case 'lab':
-        return <Laptop className="w-3.5 h-3.5" />;
-      case 'classroom':
-        return <GraduationCap className="w-3.5 h-3.5" />;
-      case 'food_counter':
-      case 'cafeteria':
-        return <Utensils className="w-3.5 h-3.5" />;
-      case 'sports_court':
-        return <Dumbbell className="w-3.5 h-3.5" />;
-      default:
-        return <Users className="w-3.5 h-3.5" />;
+  // Apt Lucide Icons for every distinct space
+  const getSpaceIcon = () => {
+    if (location.mess_provider === 'Cheftalk') {
+      return <ChefHat className="w-4 h-4 text-tertiary" />;
     }
+    if (location.mess_provider === 'The Craving Brew') {
+      return <Coffee className="w-4 h-4 text-tertiary" />;
+    }
+    if (location.name.includes('Block B') || location.type === 'lab') {
+      return <Code2 className="w-4 h-4 text-primary" />;
+    }
+    if (location.name.includes('Terrace') || location.name.includes('Outside')) {
+      return <Sun className="w-4 h-4 text-tertiary" />;
+    }
+    if (location.name.includes('Turff') || location.name.includes('Basketball')) {
+      return <Trophy className="w-4 h-4 text-secondary" />;
+    }
+    if (location.name.includes('Play Zone')) {
+      return <Gamepad2 className="w-4 h-4 text-primary" />;
+    }
+    if (location.type === 'classroom') {
+      return <GraduationCap className="w-4 h-4 text-primary" />;
+    }
+    if (location.type === 'library' || location.type === 'study_room') {
+      return <BookOpen className="w-4 h-4 text-primary" />;
+    }
+    return <Users className="w-4 h-4 text-primary" />;
   };
 
   return (
     <div
-      className={`relative rounded-2xl p-5 transition-all flex flex-col justify-between ${
+      className={`group relative rounded-3xl p-5 sm:p-6 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1 hover:shadow-2xl ${
         highlighted
           ? 'bg-surface-container-high border-2 border-tertiary shadow-xl shadow-tertiary/15'
-          : 'glass-card'
+          : 'bg-surface-container border border-primary-container/80 hover:border-primary hover:bg-surface-container-high'
       }`}
     >
-      {/* Header Info */}
+      {/* Top Row: Type Badge + Proximity Walk Meter */}
       <div>
-        <div className="flex items-start justify-between gap-3 mb-2.5">
+        <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="flex items-center gap-1 text-[11px] font-sora font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-container text-on-surface border border-primary-container">
-              {getTypeIcon()}
-              {location.type.replace('_', ' ')}
+            <span className="flex items-center gap-1.5 text-[11px] font-sora font-bold uppercase tracking-wider px-2.5 py-1 rounded-xl bg-surface-container-highest text-on-surface border border-primary-container">
+              {getSpaceIcon()}
+              <span>{location.type.replace('_', ' ')}</span>
             </span>
-            <span className="text-xs text-on-surface-variant font-inter font-medium">
-              {location.floor}
+            <span className="text-xs text-on-surface-variant font-inter font-semibold">
+              📍 {location.floor}
             </span>
           </div>
 
-          <span className="text-xs font-semibold text-primary flex items-center gap-1 font-inter whitespace-nowrap">
+          <span className="text-xs font-bold text-primary flex items-center gap-1 font-sora px-2.5 py-1 rounded-lg bg-primary-container/30 border border-primary-container">
             <Navigation className="w-3 h-3 text-primary" />
             {displayMinutes}m walk
           </span>
         </div>
 
-        {/* Title */}
+        {/* Space Title */}
         <h3
           onClick={() => onSelect(location)}
-          className="font-sora text-base sm:text-lg font-bold text-on-surface hover:text-primary cursor-pointer transition-colors leading-tight mb-1.5"
+          className="font-sora text-lg font-bold text-on-surface hover:text-tertiary cursor-pointer transition-colors leading-tight mb-2"
         >
           {location.name}
         </h3>
 
-        {/* Tables & Seats Summary */}
-        <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-2.5 font-inter">
-          <span className="flex items-center gap-1">
+        {/* Doomscroll Brain: Big Bold Tables & Seats Summary */}
+        <div className="flex items-center gap-2.5 text-xs text-on-surface-variant mb-3 font-inter bg-surface-container-lowest/60 p-2.5 rounded-xl border border-primary-container/40">
+          <span className="flex items-center gap-1 text-on-surface font-semibold font-sora">
             <Armchair className="w-3.5 h-3.5 text-tertiary" />
-            <strong>{location.table_count || 10}</strong> tables
+            {location.table_count || 10} Tables
           </span>
-          <span>•</span>
-          <span>
-            <strong>{location.capacity}</strong> total seats (
-            <strong className="text-primary">{freeSeats} free</strong>)
+          <span className="text-outline">•</span>
+          <span className="font-sora font-semibold">
+            {location.capacity} Seats
+          </span>
+          <span className="text-outline">•</span>
+          <span
+            className={`font-sora font-bold px-2 py-0.5 rounded-md ${
+              freeSeats > 10
+                ? 'bg-primary-container/60 text-primary'
+                : freeSeats > 0
+                ? 'bg-tertiary-container/60 text-tertiary'
+                : 'bg-error-container/60 text-error'
+            }`}
+          >
+            {freeSeats} Free
           </span>
         </div>
 
-        <p className="font-inter text-xs text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">
+        <p className="font-inter text-xs text-on-surface-variant line-clamp-2 mb-3.5 leading-relaxed">
           {location.description}
         </p>
 
-        {/* Mess Provider Badge for Cafeteria Counters */}
+        {/* 🍱 Food Provider Callout (CT: Cheftalk vs TCB: The Craving Brew) */}
         {location.mess_provider && (
-          <div className="mb-3 px-3 py-1.5 rounded-xl bg-surface-container border border-primary-container/70 flex items-center justify-between text-xs">
-            <span className="font-sora font-bold text-on-surface flex items-center gap-1">
-              <Utensils className="w-3 h-3 text-primary" />
-              {location.mess_provider}
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-primary-container text-primary font-mono text-[10px] font-bold">
-              {location.meal_type}
+          <div className="mb-3.5 p-3 rounded-2xl bg-surface-container-high border border-primary-container flex items-center justify-between gap-2 shadow-inner">
+            <div className="flex items-center gap-2">
+              {location.mess_provider === 'Cheftalk' ? (
+                <div className="w-7 h-7 rounded-xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center font-bold text-xs">
+                  👨‍🍳
+                </div>
+              ) : (
+                <div className="w-7 h-7 rounded-xl bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">
+                  ☕
+                </div>
+              )}
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant font-sora block leading-none">
+                  {location.mess_provider === 'Cheftalk' ? 'CT • MESS COUNTER' : 'TCB • ALTERNATE MESS'}
+                </span>
+                <span className="font-sora text-xs font-bold text-on-surface">
+                  {location.mess_provider}
+                </span>
+              </div>
+            </div>
+
+            {/* Meal Type Pill */}
+            <span
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-sora font-bold border ${
+                location.meal_type === 'Veg'
+                  ? 'bg-primary-container/40 text-primary border-primary'
+                  : location.meal_type === 'Non-Veg'
+                  ? 'bg-tertiary-container/40 text-tertiary border-tertiary'
+                  : location.meal_type === 'Jain'
+                  ? 'bg-secondary-container/40 text-secondary border-secondary'
+                  : 'bg-surface-container-highest text-on-surface border-outline'
+              }`}
+            >
+              {location.meal_type === 'Veg' && <Salad className="w-3 h-3" />}
+              {location.meal_type === 'Non-Veg' && <Flame className="w-3 h-3" />}
+              {location.meal_type === 'Jain' && <Leaf className="w-3 h-3" />}
+              {location.meal_type === 'Cafe & Snacks' && <Coffee className="w-3 h-3" />}
+              <span>{location.meal_type}</span>
             </span>
           </div>
         )}
 
-        {/* Food Queue wait time */}
+        {/* ⏱️ Food Queue Wait Time Callout */}
         {location.wait_time_minutes !== undefined && (
           <div className="mb-3 px-3 py-1.5 rounded-xl bg-tertiary-container/30 border border-tertiary/40 flex items-center justify-between text-xs text-tertiary">
             <span className="flex items-center gap-1 font-semibold font-sora">
@@ -158,12 +217,12 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           </div>
         )}
 
-        {/* Sports Gear */}
+        {/* 🏀 Sports Gear Callout */}
         {location.equipment_items && location.equipment_items.length > 0 && (
           <div className="mb-3 px-3 py-1.5 rounded-xl bg-primary-container/30 border border-primary-container flex items-center justify-between text-xs text-primary">
             <span className="flex items-center gap-1 font-semibold font-sora">
-              <Dumbbell className="w-3.5 h-3.5 text-primary" />
-              Available Gear
+              <Trophy className="w-3.5 h-3.5 text-primary" />
+              Equipment Available
             </span>
             <span className="font-bold font-inter">
               {location.equipment_items[0].available} {location.equipment_items[0].name.toLowerCase()} free
@@ -173,7 +232,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
       </div>
 
       {/* Live Occupancy Gauge with Crowd Trend */}
-      <div className="mb-3">
+      <div className="mb-3.5">
         <OccupancyBadge
           currentOccupancy={location.current_occupancy}
           capacity={location.capacity}
@@ -183,10 +242,10 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
 
       {/* Amenity Badges & Action Buttons */}
       <div>
-        <div className="flex flex-wrap items-center gap-1.5 mb-3.5 text-[11px] font-inter">
+        <div className="flex flex-wrap items-center gap-1.5 mb-4 text-[11px] font-inter">
           {/* Noise Rating */}
           <span
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-md border font-medium ${
+            className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg border font-semibold ${
               location.is_quiet
                 ? 'bg-primary-container/20 text-primary border-primary-container'
                 : 'bg-tertiary-container/20 text-tertiary border-tertiary-container'
@@ -202,7 +261,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
 
           {/* Charging */}
           {location.has_charging && (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-primary border border-primary-container font-medium">
+            <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-primary-container/20 text-primary border border-primary-container font-semibold">
               <Zap className="w-3 h-3 text-primary" />
               Power
             </span>
@@ -210,24 +269,24 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
 
           {/* Fast Wi-Fi */}
           {location.has_fast_wifi && (
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-container/20 text-primary border border-primary-container font-medium">
+            <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-primary-container/20 text-primary border border-primary-container font-semibold">
               <Wifi className="w-3 h-3 text-primary" />
               Gigabit
             </span>
           )}
 
           {/* Confidence Indicator */}
-          <span className="ml-auto flex items-center gap-1 text-[10px] text-on-surface-variant">
+          <span className="ml-auto flex items-center gap-1 text-[10px] text-on-surface-variant font-inter">
             <CheckCircle2 className="w-3 h-3 text-primary" />
             {location.report_count || 8} reports
           </span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 pt-3 border-t border-surface-variant">
+        {/* Action Buttons: Book Seat + Go Here / Watch */}
+        <div className="grid grid-cols-2 gap-2.5 pt-3.5 border-t border-surface-variant">
           <button
             onClick={() => (onBookSeat ? onBookSeat(location) : onSelect(location))}
-            className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-surface-container hover:bg-surface-container-highest text-on-surface text-xs font-sora font-semibold border border-primary-container/60 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm"
           >
             <Armchair className="w-3.5 h-3.5 text-tertiary" />
             <span>Book Seat</span>
@@ -236,18 +295,18 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           {isUnavailable ? (
             <button
               onClick={() => onNotify(location)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-on-surface border border-outline-variant text-xs font-sora font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-highest hover:bg-surface-bright text-on-surface border border-outline-variant text-xs font-sora font-bold shadow-sm transition-all active:scale-95 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-tertiary" />
-              Watch Space
+              <span>Watch</span>
             </button>
           ) : (
             <button
               onClick={() => onSelect(location)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-tertiary hover:bg-tertiary-fixed text-on-tertiary text-xs font-sora font-bold shadow-sm shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary text-xs font-sora font-bold shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
             >
               <Navigation className="w-3.5 h-3.5" />
-              Go Here
+              <span>Go Here</span>
             </button>
           )}
         </div>
