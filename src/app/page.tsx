@@ -26,11 +26,15 @@ export default function CampusSpaceApp() {
     locations,
     currentCampusLocations,
     selectedCampus,
+    setSelectedCampus,
     selectedCategory,
     setSelectedCategory,
     selectedFloor,
     setSelectedFloor,
     userCoordinates,
+    locationPermissionState,
+    isRequestingLocation,
+    requestLocation,
     alerts,
     activeAlertTrigger,
     clearAlertTrigger,
@@ -193,6 +197,14 @@ export default function CampusSpaceApp() {
         showLanding={showLanding}
         onToggleLanding={() => setShowLanding(!showLanding)}
         onSelectCategoryNav={(cat) => setSearchQuery('')}
+        selectedCampus={selectedCampus}
+        onCampusChange={setSelectedCampus}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        alerts={alerts}
+        onOpenFinder={() => setIsFindModalOpen(true)}
+        isSimulatorOpen={isSimulatorOpen}
+        onToggleSimulator={() => setIsSimulatorOpen(!isSimulatorOpen)}
       />
 
       {/* Main Container */}
@@ -226,7 +238,12 @@ export default function CampusSpaceApp() {
             </div>
 
             {/* Geolocation Permission Banner */}
-            <LocationPermissionBanner />
+            <LocationPermissionBanner
+              userCoordinates={userCoordinates}
+              locationPermissionState={locationPermissionState}
+              isRequestingLocation={isRequestingLocation}
+              onRequestLocation={requestLocation}
+            />
 
             {/* Hero Recommendation Banner */}
             <RecommendationBanner

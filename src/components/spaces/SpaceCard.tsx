@@ -60,7 +60,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
   const percentage = Math.round(
     (location.current_occupancy / Math.max(1, location.capacity)) * 100
   );
-  const isUnavailable = location.current_occupancy >= location.capacity || percentage >= 71;
+  const isFull = location.current_occupancy >= location.capacity;
   const freeSeats = Math.max(0, location.capacity - location.current_occupancy);
 
   // Calculate live proximity if user coordinates available
@@ -311,13 +311,14 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
         <div className="grid grid-cols-2 gap-2.5 pt-3.5 border-t border-surface-variant">
           <button
             onClick={() => (onBookSeat ? onBookSeat(location) : onSelect(location))}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm"
+            disabled={isFull}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-surface-container-high disabled:active:scale-100"
           >
             <Armchair className="w-3.5 h-3.5 text-tertiary" />
-            <span>Book Seat</span>
+            <span>{isFull ? 'No seats left' : 'Book Seat'}</span>
           </button>
 
-          {isUnavailable ? (
+          {isFull ? (
             <button
               onClick={() => onNotify(location)}
               className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-highest hover:bg-surface-bright text-on-surface border border-outline-variant text-xs font-sora font-bold shadow-sm transition-all active:scale-95 cursor-pointer"

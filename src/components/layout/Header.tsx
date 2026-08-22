@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useCampusStore } from '@/lib/store/useCampusStore';
-import { CampusId } from '@/types';
+import { CampusId, CampusResourceCategory, SpaceWatch } from '@/types';
 import {
   Sparkles,
   Bell,
@@ -20,6 +19,14 @@ interface HeaderProps {
   showLanding?: boolean;
   onToggleLanding?: () => void;
   onSelectCategoryNav?: (cat: 'study' | 'food' | 'sports') => void;
+  selectedCampus: CampusId;
+  onCampusChange: (campus: CampusId) => void;
+  selectedCategory: CampusResourceCategory | 'all';
+  onCategoryChange: (category: CampusResourceCategory | 'all') => void;
+  alerts: SpaceWatch[];
+  onOpenFinder: () => void;
+  isSimulatorOpen: boolean;
+  onToggleSimulator: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,22 +34,19 @@ export const Header: React.FC<HeaderProps> = ({
   showLanding = false,
   onToggleLanding,
   onSelectCategoryNav,
+  selectedCampus,
+  onCampusChange,
+  selectedCategory,
+  onCategoryChange,
+  alerts,
+  onOpenFinder,
+  isSimulatorOpen,
+  onToggleSimulator,
 }) => {
-  const {
-    selectedCampus,
-    setSelectedCampus,
-    selectedCategory,
-    setSelectedCategory,
-    alerts,
-    setIsFindModalOpen,
-    isSimulatorOpen,
-    setIsSimulatorOpen,
-  } = useCampusStore();
-
   const activeAlertCount = alerts.filter((a) => a.is_active).length;
 
   const handleNavCategory = (cat: 'study' | 'food' | 'sports') => {
-    setSelectedCategory(cat);
+    onCategoryChange(cat);
     if (onSelectCategoryNav) {
       onSelectCategoryNav(cat);
     }
@@ -79,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="hidden lg:flex items-center gap-1 pl-2 border-l border-surface-variant">
             <select
               value={selectedCampus}
-              onChange={(e) => setSelectedCampus(e.target.value as CampusId)}
+              onChange={(e) => onCampusChange(e.target.value as CampusId)}
               aria-label="Select Active Campus"
               className="bg-transparent text-xs font-semibold text-tertiary hover:text-tertiary-fixed focus:outline-none cursor-pointer"
             >
@@ -151,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Open App / Find My Space Pill */}
           <button
-            onClick={() => setIsFindModalOpen(true)}
+            onClick={onOpenFinder}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs sm:text-sm shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
@@ -176,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Demo Simulator Toggle */}
           <button
-            onClick={() => setIsSimulatorOpen(!isSimulatorOpen)}
+            onClick={onToggleSimulator}
             className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               isSimulatorOpen
                 ? 'bg-tertiary-container text-on-tertiary-container border-tertiary shadow-sm'

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { CampusLocation, SeatInfo, SeatBooking } from '@/types';
 import { playAlertChime } from '@/lib/engine/sound';
 import {
@@ -15,6 +15,9 @@ import {
   Users,
   CheckCircle2,
   Trash2,
+  Zap,
+  LayoutGrid,
+  ListFilter,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -32,47 +35,80 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
   const [selectedSeat, setSelectedSeat] = useState<SeatInfo | null>(null);
   const [durationHours, setDurationHours] = useState<number>(2);
   const [activeBooking, setActiveBooking] = useState<SeatBooking | null>(null);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [viewMode, setViewMode] = useState<'all_tables' | 'free_only'>('all_tables');
 
-  // Generate deterministic seat grid for the location based on table_count & capacity
+  // Reset local state when location changes
+  useEffect(() => {
+    setSelectedSeat(null);
+    setActiveBooking(null);
+  }, [location?.id]);
+
   const tableCount = location?.table_count || Math.max(1, Math.ceil((location?.capacity || 20) / 4));
-  const seatsPerTable = Math.max(2, Math.floor((location?.capacity || 20) / tableCount));
 
-  const seatMatrix = useMemo(() => {
+  // Build the complete room seat layout for ALL tables
+  const allTablesData = useMemo(() => {
     if (!location) return [];
-    const matrix: { tableIndex: number; seats: SeatInfo[] }[] = [];
-    const occupiedCount = location.current_occupancy;
+
+    const baseSeatsPerTable = Math.floor(location.capacity / tableCount);
+    const tablesWithExtraSeat = location.capacity % tableCount;
     let seatCounter = 0;
 
-    for (let t = 1; t <= tableCount; t++) {
-      const tableSeats: SeatInfo[] = [];
-      for (let s = 1; s <= seatsPerTable; s++) {
-        seatCounter++;
-        // Determine occupation deterministically (first occupiedCount seats are taken)
-        const isOccupied = seatCounter <= occupiedCount;
-        const seatId = `T${t}-S${s}`;
+    const tables: {
+      tableNumber: number;
+      seats: SeatInfo[];
+      freeCount: number;
+      totalCount: number;
+    }[] = [];
 
-        tableSeats.push({
-          id: seatId,
-          serial_number: `T${t}-S${s}`,
+    for (let t = 1; t <= tableCount; t++) {
+      const seatsAtTable = baseSeatsPerTable + (t <= tablesWithExtraSeat ? 1 : 0);
+      const seats: SeatInfo[] = [];
+
+      for (let s = 1; s <= seatsAtTable; s++) {
+        seatCounter++;
+        const serialNumber = `T${t}-S${s}`;
+        const isOccupied = seatCounter <= location.current_occupancy;
+
+        seats.push({
+          id: serialNumber,
+          serial_number: serialNumber,
           table_number: t,
           seat_index: s,
           is_occupied: isOccupied,
-          booked_by_user: activeBooking?.seat_number === seatId,
+          booked_by_user: activeBooking?.seat_number === serialNumber,
         });
       }
-      matrix.push({ tableIndex: t, seats: tableSeats });
+
+      const freeCount = seats.filter((st) => !st.is_occupied || st.booked_by_user).length;
+      tables.push({
+        tableNumber: t,
+        seats,
+        freeCount,
+        totalCount: seatsAtTable,
+      });
     }
-    return matrix;
-  }, [location, tableCount, seatsPerTable, activeBooking]);
+
+    return tables;
+  }, [location, tableCount, activeBooking]);
 
   if (!isOpen || !location) return null;
 
   const freeSeatCount = Math.max(0, location.capacity - location.current_occupancy);
 
+  // List of all free seats across the entire room
+  const allFreeSeats = allTablesData.flatMap((t) =>
+    t.seats.filter((st) => !st.is_occupied || st.booked_by_user)
+  );
+
   const handleSeatClick = (seat: SeatInfo) => {
     if (seat.is_occupied && !seat.booked_by_user) return;
     setSelectedSeat(seat);
+  };
+
+  const handleQuickPick = () => {
+    if (allFreeSeats.length > 0) {
+      setSelectedSeat(allFreeSeats[0]);
+    }
   };
 
   const handleConfirmBooking = () => {
@@ -90,7 +126,6 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
     };
 
     setActiveBooking(booking);
-    setIsConfirmed(true);
 
     try {
       playAlertChime();
@@ -108,12 +143,11 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
   const handleCancelBooking = () => {
     setActiveBooking(null);
     setSelectedSeat(null);
-    setIsConfirmed(false);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-surface-container-lowest/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-5 sm:p-7 flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative w-full max-w-3xl rounded-3xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-5 sm:p-7 flex flex-col max-h-[90vh] overflow-hidden">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -124,112 +158,216 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
 
         {/* Modal Header */}
         <div className="mb-4 pr-8">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary-container text-primary border border-primary font-mono">
-              BOOKMYSHOW SEAT ENGINE
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-primary-container text-primary border border-primary font-mono">
+              INTERACTIVE SEAT MAP
             </span>
-            <span className="text-xs text-on-surface-variant font-inter">
+            <span className="text-xs text-on-surface-variant font-inter font-medium">
               {location.floor} • {location.building}
             </span>
           </div>
 
-          <h3 className="font-sora text-lg sm:text-2xl font-bold text-on-surface leading-tight">
+          <h3 className="font-sora text-xl sm:text-2xl font-bold text-on-surface leading-tight">
             {location.name}
           </h3>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs text-on-surface-variant mt-1.5 font-inter">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant mt-2 font-inter">
             <span>
-              Tables: <strong className="text-on-surface font-sora font-bold">{tableCount}</strong>
+              All Tables: <strong className="text-on-surface font-sora font-bold">{tableCount}</strong>
             </span>
             <span>•</span>
             <span>
               Total Seats: <strong className="text-on-surface font-sora font-bold">{location.capacity}</strong>
             </span>
             <span>•</span>
-            <span>
-              Available: <strong className="text-primary font-sora font-bold">{freeSeatCount} free</strong>
+            <span className="text-primary font-sora font-bold bg-primary-container/40 px-2 py-0.5 rounded-md border border-primary-container">
+              {freeSeatCount} free seats available
             </span>
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-4 sm:gap-6 py-2.5 px-4 rounded-xl bg-surface-container border border-primary-container/70 text-xs font-inter mb-4">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded-md bg-surface-variant border border-primary-container" />
-            <span className="text-on-surface-variant text-[11px]">Available</span>
+        {/* View Mode Switcher + Legend + Quick Pick */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 py-2 px-3 rounded-2xl bg-surface-container border border-primary-container/70 mb-4">
+          {/* View Mode Buttons */}
+          <div className="flex items-center gap-1 bg-surface-container-high p-1 rounded-xl border border-primary-container/60">
+            <button
+              onClick={() => setViewMode('all_tables')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-sora font-semibold transition-all cursor-pointer ${
+                viewMode === 'all_tables'
+                  ? 'bg-tertiary text-on-tertiary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Full Room Layout</span>
+            </button>
+            <button
+              onClick={() => setViewMode('free_only')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-sora font-semibold transition-all cursor-pointer ${
+                viewMode === 'free_only'
+                  ? 'bg-tertiary text-on-tertiary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <ListFilter className="w-3.5 h-3.5" />
+              <span>Free Seats ({allFreeSeats.length})</span>
+            </button>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded-md bg-error/70 border border-error/50" />
-            <span className="text-on-surface-variant text-[11px]">Occupied</span>
+
+          {/* Color Legend */}
+          <div className="flex items-center gap-4 text-xs font-inter self-center sm:self-auto">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-primary" />
+              <span className="text-on-surface-variant text-[11px]">Free</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-error/70" />
+              <span className="text-on-surface-variant text-[11px]">Occupied</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-tertiary" />
+              <span className="text-tertiary font-bold text-[11px]">Selected</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded-md bg-tertiary border border-tertiary-fixed shadow-sm" />
-            <span className="text-tertiary font-bold text-[11px]">Selected</span>
-          </div>
+
+          {/* Quick Pick Best Available Button */}
+          {freeSeatCount > 0 && (
+            <button
+              onClick={handleQuickPick}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-container text-primary hover:bg-primary-container/80 text-xs font-sora font-bold border border-primary transition-all active:scale-95 cursor-pointer self-stretch sm:self-auto"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Quick Pick Free Seat</span>
+            </button>
+          )}
         </div>
 
-        {/* Presentation / Stage Bar */}
-        <div className="w-full flex flex-col items-center mb-4">
-          <div className="w-3/4 h-2 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-80 mb-1" />
+        {/* Front Presentation Indicator */}
+        <div className="w-full flex flex-col items-center mb-3">
+          <div className="w-3/4 h-1.5 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-80 mb-1" />
           <span className="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70 font-mono">
             FRONT / WHITEBOARD &amp; SCREEN
           </span>
         </div>
 
-        {/* Seat Grid - Scrollable */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-4 no-scrollbar">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
-            {seatMatrix.map((table) => (
-              <div
-                key={table.tableIndex}
-                className="p-3 rounded-xl bg-surface-container border border-primary-container/60 flex flex-col items-center gap-2"
-              >
-                <span className="text-[11px] font-sora font-bold text-on-surface-variant">
-                  Table {table.tableIndex}
-                </span>
+        {/* Multi-View: 1. Full Room Table Matrix / 2. Free Seats Fast List */}
+        <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-4">
+          {viewMode === 'all_tables' ? (
+            /* View 1: Full Room Table Grid (All tables & seats visible simultaneously) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+              {allTablesData.map((table) => {
+                const isTableFull = table.freeCount === 0;
 
-                {/* 2x2 or Grid of Seats */}
-                <div className="grid grid-cols-2 gap-1.5 w-full">
-                  {table.seats.map((seat) => {
-                    const isSelected = selectedSeat?.id === seat.id;
-                    const isUserBooked = activeBooking?.seat_number === seat.serial_number;
-
-                    return (
-                      <button
-                        key={seat.id}
-                        type="button"
-                        disabled={seat.is_occupied && !isUserBooked}
-                        onClick={() => handleSeatClick(seat)}
-                        className={`p-2 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${
-                          isUserBooked
-                            ? 'bg-primary text-on-primary border-2 border-primary shadow-md'
-                            : isSelected
-                            ? 'bg-tertiary text-on-tertiary border-2 border-tertiary-fixed scale-105 shadow-md shadow-tertiary/20'
-                            : seat.is_occupied
-                            ? 'bg-surface-variant/40 text-on-surface-variant/40 border border-error/30 cursor-not-allowed'
-                            : 'bg-surface-container-high hover:bg-surface-bright text-on-surface border border-primary-container/70 hover:border-primary'
+                return (
+                  <div
+                    key={table.tableNumber}
+                    className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 ${
+                      isTableFull
+                        ? 'bg-surface-container/60 border-surface-variant/40 opacity-75'
+                        : 'bg-surface-container border-primary-container/70 hover:border-primary'
+                    }`}
+                  >
+                    {/* Table Header with Live Free Badge */}
+                    <div className="flex items-center justify-between">
+                      <span className="font-sora text-xs font-bold text-on-surface">
+                        Table {table.tableNumber}
+                      </span>
+                      <span
+                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                          isTableFull
+                            ? 'bg-error-container/40 text-error'
+                            : 'bg-primary-container/60 text-primary'
                         }`}
-                        title={
-                          seat.is_occupied
-                            ? `Seat ${seat.serial_number} (Occupied)`
-                            : `Seat ${seat.serial_number} (Available)`
-                        }
                       >
-                        <Armchair className="w-3.5 h-3.5 mb-0.5" />
-                        <span className="text-[10px]">{seat.serial_number}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {isTableFull ? 'FULL' : `${table.freeCount} FREE`}
+                      </span>
+                    </div>
+
+                    {/* All Seats at this Table */}
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                      {table.seats.map((seat) => {
+                        const isSelected = selectedSeat?.id === seat.id;
+                        const isUserBooked = activeBooking?.seat_number === seat.serial_number;
+
+                        return (
+                          <button
+                            key={seat.id}
+                            type="button"
+                            disabled={seat.is_occupied && !isUserBooked}
+                            onClick={() => handleSeatClick(seat)}
+                            className={`p-2 rounded-xl text-xs font-mono font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${
+                              isUserBooked
+                                ? 'bg-primary text-on-primary border-2 border-primary shadow-md'
+                                : isSelected
+                                ? 'bg-tertiary text-on-tertiary border-2 border-tertiary-fixed scale-105 shadow-md shadow-tertiary/20'
+                                : seat.is_occupied
+                                ? 'bg-surface-variant/30 text-on-surface-variant/40 border border-error/20 cursor-not-allowed'
+                                : 'bg-primary-container/20 hover:bg-primary-container text-on-surface border border-primary/50 hover:border-primary'
+                            }`}
+                            title={
+                              seat.is_occupied
+                                ? `Seat ${seat.serial_number} (Occupied)`
+                                : `Seat ${seat.serial_number} (Available)`
+                            }
+                          >
+                            <Armchair
+                              className={`w-3.5 h-3.5 mb-0.5 ${
+                                isSelected
+                                  ? 'text-on-tertiary'
+                                  : isUserBooked
+                                  ? 'text-on-primary'
+                                  : seat.is_occupied
+                                  ? 'text-error/50'
+                                  : 'text-primary'
+                              }`}
+                            />
+                            <span className="text-[10px]">{seat.serial_number}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* View 2: Free Seats Only (Quick Clean View) */
+            <div className="space-y-3">
+              <div className="text-xs text-on-surface-variant font-inter">
+                Showing all <strong className="text-primary font-bold">{allFreeSeats.length}</strong> available seats sorted by Table:
               </div>
-            ))}
-          </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+                {allFreeSeats.map((seat) => {
+                  const isSelected = selectedSeat?.id === seat.id;
+                  const isUserBooked = activeBooking?.seat_number === seat.serial_number;
+
+                  return (
+                    <button
+                      key={seat.id}
+                      onClick={() => handleSeatClick(seat)}
+                      className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+                        isUserBooked
+                          ? 'bg-primary text-on-primary border-2 border-primary shadow-md'
+                          : isSelected
+                          ? 'bg-tertiary text-on-tertiary border-2 border-tertiary-fixed scale-105 shadow-md'
+                          : 'bg-surface-container hover:bg-primary-container/30 border border-primary/50 text-on-surface'
+                      }`}
+                    >
+                      <Armchair className={`w-4 h-4 ${isSelected ? 'text-on-tertiary' : 'text-primary'}`} />
+                      <span className="font-mono text-xs font-bold">{seat.serial_number}</span>
+                      <span className="text-[10px] text-on-surface-variant">Table {seat.table_number}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Booking Confirmation Pass or Action Tray */}
         <div className="mt-4 pt-3.5 border-t border-surface-variant">
           {activeBooking ? (
-            <div className="p-4 rounded-xl bg-primary-container/40 border border-primary flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="p-4 rounded-2xl bg-primary-container/40 border border-primary flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center font-bold">
                   <CheckCircle2 className="w-6 h-6" />
@@ -244,7 +382,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-on-surface-variant font-inter">
-                    Table {activeBooking.table_number} • Booked at {activeBooking.booked_at} • Valid for {durationHours} hours
+                    Table {activeBooking.table_number} • Reserved at {activeBooking.booked_at} • Valid for {durationHours} hours
                   </p>
                 </div>
               </div>
@@ -262,7 +400,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-on-surface-variant font-inter">Selected Seat:</span>
-                  <span className="font-mono font-black text-tertiary bg-surface-container px-2 py-0.5 rounded border border-tertiary/40 text-sm">
+                  <span className="font-mono font-black text-tertiary bg-surface-container px-2.5 py-1 rounded-lg border border-tertiary/40 text-sm">
                     {selectedSeat.serial_number} (Table {selectedSeat.table_number})
                   </span>
                 </div>
@@ -273,10 +411,10 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
                     value={durationHours}
                     onChange={(e) => setDurationHours(Number(e.target.value))}
                     aria-label="Select reservation duration in hours"
-                    className="bg-surface-container border border-primary-container rounded px-2 py-0.5 text-xs text-on-surface focus:outline-none"
+                    className="bg-surface-container border border-primary-container rounded-lg px-2 py-0.5 text-xs text-on-surface focus:outline-none"
                   >
                     <option value={1}>1 Hour</option>
-                    <option value={2}>2 Hours (Recommended)</option>
+                    <option value={2}>2 Hours (Default)</option>
                     <option value={4}>4 Hours</option>
                   </select>
                 </div>
@@ -286,7 +424,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedSeat(null)}
-                  className="px-3 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-highest text-on-surface-variant text-xs font-semibold"
+                  className="px-3 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-highest text-on-surface-variant text-xs font-semibold cursor-pointer"
                 >
                   Clear
                 </button>
@@ -302,7 +440,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
             </div>
           ) : (
             <div className="flex items-center justify-between text-xs text-on-surface-variant font-inter py-1">
-              <span>Tap any green seat to pick your serial number and claim a spot.</span>
+              <span>Tap any green seat to claim your spot directly.</span>
               <button
                 type="button"
                 onClick={onClose}

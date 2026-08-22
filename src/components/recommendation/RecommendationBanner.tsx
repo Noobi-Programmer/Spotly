@@ -24,7 +24,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
 
   const { location, matchScore, reasons, occupancyPercentage, isAvailable } =
     recommendation;
-  const isCrowded = !isAvailable || occupancyPercentage >= 71;
+  const isFull = !isAvailable;
   const freeSeats = Math.max(0, location.capacity - location.current_occupancy);
 
   return (
@@ -115,13 +115,14 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
             {/* Book Seat CTA */}
             <button
               onClick={() => (onBookSeat ? onBookSeat(location) : onSelect(location))}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm"
+              disabled={isFull}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-surface-container-high disabled:active:scale-100"
             >
               <Armchair className="w-3.5 h-3.5 text-tertiary" />
-              <span>Book Seat (Serial No.)</span>
+              <span>{isFull ? 'No seats left' : 'Book Seat (Serial No.)'}</span>
             </button>
 
-            {isCrowded ? (
+            {isFull ? (
               <button
                 onClick={() => onNotify(location)}
                 className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-surface-container-highest hover:bg-surface-bright text-on-surface border border-outline-variant text-xs font-sora font-bold transition-all active:scale-95 cursor-pointer shadow-sm"

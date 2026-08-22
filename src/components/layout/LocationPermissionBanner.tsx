@@ -1,16 +1,22 @@
 'use client';
 
 import React from 'react';
-import { useCampusStore } from '@/lib/store/useCampusStore';
+import { GeolocationPermissionState, UserCoordinates } from '@/lib/utils/geolocation';
 import { MapPin, Navigation, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
-export const LocationPermissionBanner: React.FC = () => {
-  const {
-    userCoordinates,
-    locationPermissionState,
-    isRequestingLocation,
-    requestLocation,
-  } = useCampusStore();
+interface LocationPermissionBannerProps {
+  userCoordinates: UserCoordinates | null;
+  locationPermissionState: GeolocationPermissionState;
+  isRequestingLocation: boolean;
+  onRequestLocation: () => void;
+}
+
+export const LocationPermissionBanner: React.FC<LocationPermissionBannerProps> = ({
+  userCoordinates,
+  locationPermissionState,
+  isRequestingLocation,
+  onRequestLocation,
+}) => {
 
   const [dismissed, setDismissed] = React.useState(false);
 
@@ -44,7 +50,7 @@ export const LocationPermissionBanner: React.FC = () => {
           <span>Location isn&apos;t available. You can still explore and watch campus spaces.</span>
         </div>
         <button
-          onClick={requestLocation}
+          onClick={onRequestLocation}
           className="text-xs text-tertiary hover:underline font-sora font-semibold ml-2 cursor-pointer"
         >
           Retry
@@ -75,7 +81,7 @@ export const LocationPermissionBanner: React.FC = () => {
           Skip
         </button>
         <button
-          onClick={requestLocation}
+          onClick={onRequestLocation}
           disabled={isRequestingLocation}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs shadow-sm transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
         >
