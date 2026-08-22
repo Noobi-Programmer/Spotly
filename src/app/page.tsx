@@ -12,6 +12,7 @@ import { SpaceFilters } from '@/components/spaces/SpaceFilters';
 import { BlockWiseSpaceView } from '@/components/spaces/BlockWiseSpaceView';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
 import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
+import { LoginModal } from '@/components/auth/LoginModal';
 import { CampusMap } from '@/components/map/CampusMap';
 import { FindSpaceModal } from '@/components/recommendation/FindSpaceModal';
 import { RecommendationBanner } from '@/components/recommendation/RecommendationBanner';
@@ -19,7 +20,7 @@ import { NotifyModal } from '@/components/alerts/NotifyModal';
 import { ActiveAlertsDrawer } from '@/components/alerts/ActiveAlertsDrawer';
 import { AlertToast } from '@/components/alerts/AlertToast';
 import { SimulatorControlTray } from '@/components/simulator/SimulatorControlTray';
-import { Shield, Cpu, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function CampusSpaceApp() {
   const {
@@ -69,6 +70,8 @@ export default function CampusSpaceApp() {
   const [targetNotifyLocation, setTargetNotifyLocation] = useState<CampusLocation | null>(null);
   const [targetBookingLocation, setTargetBookingLocation] = useState<CampusLocation | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
 
   // Available floors in strict order: Upper Basement -> Ground Floor -> Floor 1 -> Floor 2
   const availableFloors = useMemo(() => {
@@ -164,27 +167,6 @@ export default function CampusSpaceApp() {
     setIsBookingModalOpen(true);
   };
 
-  const handleResetFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('all');
-    setSelectedFloor('all');
-    setFilterType('all');
-    setFilterQuietOnly(false);
-    setFilterChargingOnly(false);
-    setSpaciousOnly(false);
-    setUserPreferences({
-      category: 'all',
-      study: true,
-      quiet: false,
-      charging: false,
-      wifi: false,
-      low_crowd: false,
-      nearby: false,
-      type: 'all',
-      floor: 'all',
-    });
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary">
       {/* Top Navigation Bar */}
@@ -193,6 +175,8 @@ export default function CampusSpaceApp() {
         showLanding={showLanding}
         onToggleLanding={() => setShowLanding(!showLanding)}
         onSelectCategoryNav={(cat) => setSearchQuery('')}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        currentUser={currentUser}
       />
 
       {/* Main Container */}
@@ -283,7 +267,14 @@ export default function CampusSpaceApp() {
       </main>
 
       {/* Modals and Drawers */}
-      {/* 1. Find My Space Modal */}
+      {/* 1. Spotly Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={(email) => setCurrentUser(email)}
+      />
+
+      {/* 2. Find My Space Modal */}
       <FindSpaceModal
         isOpen={isFindModalOpen}
         onClose={() => setIsFindModalOpen(false)}
@@ -296,7 +287,7 @@ export default function CampusSpaceApp() {
         userCoordinates={userCoordinates}
       />
 
-      {/* 2. Space Detail Modal with 1-Tap Crowd Reports & Seat Booking */}
+      {/* 3. Space Detail Modal with 1-Tap Crowd Reports & Seat Booking */}
       <SpaceDetailModal
         location={selectedLocation}
         onClose={() => setSelectedLocation(null)}
@@ -305,7 +296,7 @@ export default function CampusSpaceApp() {
         onSubmitReport={submitCrowdReport}
       />
 
-      {/* 3. Full Room Seat Booking Modal */}
+      {/* 4. Full Room Seat Booking Modal */}
       <SeatBookingModal
         location={targetBookingLocation}
         isOpen={isBookingModalOpen}
@@ -315,7 +306,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 4. Watch This Space Threshold Modal */}
+      {/* 5. Watch This Space Threshold Modal */}
       <NotifyModal
         location={targetNotifyLocation}
         isOpen={isNotifyModalOpen}
@@ -328,7 +319,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 5. My Watches Drawer */}
+      {/* 6. My Watches Drawer */}
       <ActiveAlertsDrawer
         isOpen={isActiveAlertsDrawerOpen}
         onClose={() => setIsActiveAlertsDrawerOpen(false)}
@@ -341,7 +332,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 6. Triggered Alert Hero Toast (confetti + audio chime) */}
+      {/* 7. Triggered Alert Hero Toast (confetti + audio chime) */}
       <AlertToast
         data={activeAlertTrigger}
         onDismiss={clearAlertTrigger}
@@ -351,7 +342,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 7. Admin / Demo Simulator Control Tray */}
+      {/* 8. Admin / Demo Simulator Control Tray */}
       <SimulatorControlTray
         isOpen={isSimulatorOpen}
         onClose={() => setIsSimulatorOpen(false)}
@@ -373,15 +364,9 @@ export default function CampusSpaceApp() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-on-surface-variant">
-            <span className="flex items-center gap-1.5 text-primary">
-              <Shield className="w-3.5 h-3.5" />
-              Privacy-First Architecture
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5 text-tertiary">
-              <Cpu className="w-3.5 h-3.5" />
-              &lt;2ms Real-Time Matching
+          <div className="flex flex-wrap items-center gap-4 text-on-surface-variant font-inter">
+            <span className="flex items-center gap-1.5 text-primary font-sora font-semibold">
+              ✨ Team Sparkle
             </span>
             <span>•</span>
             <span>Scaler School of Technology • Gradient Rush</span>

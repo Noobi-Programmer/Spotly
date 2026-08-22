@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
-import { CampusId, CampusResourceCategory } from '@/types';
+import { CampusId } from '@/types';
 import {
   Sparkles,
   Bell,
@@ -12,6 +12,7 @@ import {
   BookOpen,
   UtensilsCrossed,
   Trophy,
+  User,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -19,6 +20,8 @@ interface HeaderProps {
   showLanding?: boolean;
   onToggleLanding?: () => void;
   onSelectCategoryNav?: (cat: 'study' | 'food' | 'sports') => void;
+  onOpenLogin?: () => void;
+  currentUser?: string | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +29,8 @@ export const Header: React.FC<HeaderProps> = ({
   showLanding = false,
   onToggleLanding,
   onSelectCategoryNav,
+  onOpenLogin,
+  currentUser,
 }) => {
   const {
     selectedCampus,
@@ -172,6 +177,18 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             )}
           </button>
+
+          {/* Sign In / Student Profile Button */}
+          {onOpenLogin && (
+            <button
+              onClick={onOpenLogin}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-bright text-xs font-sora font-semibold text-on-surface border border-primary-container transition-all cursor-pointer"
+              title="Sign in with SST Email"
+            >
+              <User className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">{currentUser ? currentUser.split('@')[0] : 'Sign In'}</span>
+            </button>
+          )}
 
           {/* Demo Simulator Toggle */}
           <button
