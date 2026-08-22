@@ -12,19 +12,20 @@ import {
   Zap,
   Wifi,
   Clock,
-  Share2,
   CheckCircle2,
   Sparkles,
   Users,
   Dumbbell,
   Utensils,
   Check,
+  Armchair,
 } from 'lucide-react';
 
 interface SpaceDetailModalProps {
   location: CampusLocation | null;
   onClose: () => void;
   onNotify: (loc: CampusLocation) => void;
+  onBookSeat?: (loc: CampusLocation) => void;
   onSubmitReport?: (locationId: string, level: 'empty' | 'moderate' | 'full') => void;
 }
 
@@ -32,6 +33,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
   location,
   onClose,
   onNotify,
+  onBookSeat,
   onSubmitReport,
 }) => {
   const [reportSubmitted, setReportSubmitted] = useState(false);
@@ -50,48 +52,81 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl glass-panel border border-slate-700/80 bg-slate-900/95 shadow-2xl p-6 sm:p-8 no-scrollbar">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-6 sm:p-8 no-scrollbar">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-full bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Header Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-slate-800 text-emerald-400 border border-slate-700">
+          <span className="font-sora text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-surface-container text-primary border border-primary-container">
             {location.type.replace('_', ' ')}
           </span>
-          <span className="text-xs font-medium text-slate-400">
+          <span className="text-xs font-medium text-on-surface-variant font-inter">
             {location.building} • {location.floor}
           </span>
-          <span className="text-xs font-semibold text-cyan-400 flex items-center gap-1 ml-auto mr-8">
+          <span className="text-xs font-semibold text-primary flex items-center gap-1 ml-auto mr-8 font-inter">
             <Navigation className="w-3.5 h-3.5" />
             {location.distance_minutes} min walk
           </span>
         </div>
 
         {/* Space Title */}
-        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight mb-2">
+        <h2 className="font-sora text-xl sm:text-2xl font-bold text-on-surface tracking-tight mb-2">
           {location.name}
         </h2>
 
-        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5">
+        {/* Tables & Seats Summary Pill */}
+        <div className="flex items-center gap-3 text-xs text-on-surface-variant mb-4 font-inter">
+          <span className="flex items-center gap-1">
+            <Armchair className="w-4 h-4 text-tertiary" />
+            <strong>{location.table_count || 10}</strong> Tables
+          </span>
+          <span>•</span>
+          <span>
+            <strong>{location.capacity}</strong> Total Seats
+          </span>
+          <span>•</span>
+          <span className="text-primary font-bold">
+            {availableSeats} Free Seats
+          </span>
+        </div>
+
+        <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed mb-5">
           {location.description}
         </p>
 
+        {/* Mess Provider Callout */}
+        {location.mess_provider && (
+          <div className="p-3.5 rounded-xl bg-surface-container border border-primary-container mb-5 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider font-sora block">
+                MESS PROVIDER
+              </span>
+              <h4 className="font-sora text-sm font-bold text-on-surface">
+                {location.mess_provider}
+              </h4>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-primary-container text-primary font-mono text-xs font-bold border border-primary">
+              {location.meal_type}
+            </span>
+          </div>
+        )}
+
         {/* Occupancy Status Section */}
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/90 mb-5">
+        <div className="p-4 rounded-xl bg-surface-container border border-primary-container mb-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-sora">
               Live Crowd Telemetry
             </span>
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Live Signal Stream
+            <span className="text-xs font-semibold text-primary flex items-center gap-1 font-inter">
+              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+              Live Stream
             </span>
           </div>
 
@@ -99,184 +134,157 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
             currentOccupancy={location.current_occupancy}
             capacity={location.capacity}
             trend={location.trend}
-            size="lg"
           />
-
-          <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-center">
-            <div>
-              <div className="text-xs text-slate-400">Occupied</div>
-              <div className="text-base font-bold text-white">{location.current_occupancy}</div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-400">Available</div>
-              <div className="text-base font-bold text-emerald-400">{availableSeats}</div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-400">Total Capacity</div>
-              <div className="text-base font-bold text-slate-300">{location.capacity}</div>
-            </div>
-          </div>
         </div>
 
-        {/* P1: Best Time to Go & Peak Hours Callout */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 border border-emerald-500/30 mb-5">
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Best Time to Go (Predictive Insight)</span>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <div>
-              <div className="text-slate-200 font-bold text-sm">
-                {location.best_time_to_go || 'Around 6:15 PM'}
-              </div>
-              <div className="text-[11px] text-slate-400">
-                Peak hours usually: {location.peak_hours || '1:00 PM – 4:00 PM'}
-              </div>
+        {/* Predictive Intelligence: Best Time to Go */}
+        {location.best_time_to_go && (
+          <div className="p-4 rounded-xl bg-surface-container border border-primary-container mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-tertiary" />
+              <h4 className="font-sora text-xs font-bold uppercase tracking-wider text-tertiary">
+                Best Time to Go (Predictive)
+              </h4>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold self-start sm:self-auto">
-              Expected ~40% crowd
-            </span>
+            <div className="text-sm font-bold text-on-surface mb-1 font-inter">
+              {location.best_time_to_go}
+            </div>
+            {location.peak_hours && (
+              <div className="text-xs text-on-surface-variant flex items-center gap-1.5 font-inter">
+                <Clock className="w-3.5 h-3.5 text-on-surface-variant" />
+                <span>Peak hours: {location.peak_hours}</span>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* P1: Community Crowd Validation & 1-Tap Quick Report */}
-        <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
+        {/* Community 1-Tap Crowd Reporting */}
+        <div className="p-4 rounded-xl bg-surface-container border border-primary-container/70 mb-5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-cyan-400" />
-              Community Crowd Validation
+            <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-sora flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-primary" />
+              Community Crowd Check-in
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              🟢 {location.confidence === 'high' ? 'High Confidence' : 'Medium Confidence'}
+            <span className="text-[11px] text-primary font-medium font-inter">
+              {location.report_count || 8} verified reports
             </span>
           </div>
 
-          <p className="text-[11px] text-slate-400 mb-3">
-            Reported by <strong>{location.report_count || 8} students</strong> • Last updated{' '}
-            <strong>{location.last_reported_minutes_ago || 2}m ago</strong>. Help fellow students:
+          <p className="text-[11px] text-on-surface-variant mb-3 font-inter">
+            Are you here right now? Help fellow students by tapping the live crowd status:
           </p>
 
-          {/* 1-Tap Quick Report Buttons */}
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => handleQuickReport('empty')}
-              className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-emerald-950/50 hover:border-emerald-500/50 border border-slate-800 text-[11px] font-bold text-emerald-300 transition-all flex items-center justify-center gap-1"
+              className="py-2 px-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-xs font-sora font-semibold text-primary border border-primary-container transition-all cursor-pointer"
             >
-              <span>🟢 Empty</span>
+              🟢 Plenty Free
             </button>
             <button
               onClick={() => handleQuickReport('moderate')}
-              className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-amber-950/50 hover:border-amber-500/50 border border-slate-800 text-[11px] font-bold text-amber-300 transition-all flex items-center justify-center gap-1"
+              className="py-2 px-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-xs font-sora font-semibold text-tertiary border border-primary-container transition-all cursor-pointer"
             >
-              <span>🟡 Moderate</span>
+              🟡 Moderate
             </button>
             <button
               onClick={() => handleQuickReport('full')}
-              className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-rose-950/50 hover:border-rose-500/50 border border-slate-800 text-[11px] font-bold text-rose-300 transition-all flex items-center justify-center gap-1"
+              className="py-2 px-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-xs font-sora font-semibold text-error border border-primary-container transition-all cursor-pointer"
             >
-              <span>🔴 Full</span>
+              🔴 Packed Full
             </button>
           </div>
 
           {reportSubmitted && (
-            <div className="mt-2 text-center text-xs font-bold text-emerald-400 animate-in fade-in flex items-center justify-center gap-1">
+            <div className="mt-2 text-center text-xs text-primary font-bold flex items-center justify-center gap-1 font-inter">
               <Check className="w-3.5 h-3.5 stroke-[3]" />
-              <span>Thanks! Crowd report updated instantly.</span>
+              <span>Thank you! Live crowd updated.</span>
             </div>
           )}
         </div>
 
-        {/* P2: Sports Equipment Inventory (if sports) */}
+        {/* Sports Gear Details */}
         {location.equipment_items && location.equipment_items.length > 0 && (
-          <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 mb-5">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">
-              <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Equipment Available to Borrow</span>
+          <div className="p-4 rounded-xl bg-surface-container border border-primary-container mb-5">
+            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-2.5 flex items-center gap-1.5 font-sora">
+              <Dumbbell className="w-3.5 h-3.5" />
+              Available Gear for Checkout
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {location.equipment_items.map((eq, i) => (
-                <div key={i} className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center">
-                  <span className="text-slate-300">{eq.name}</span>
-                  <span className="font-bold text-emerald-400">{eq.available} / {eq.total} free</span>
+            <div className="grid grid-cols-2 gap-2">
+              {location.equipment_items.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-2.5 rounded-lg bg-surface-container-high border border-primary-container/60 flex items-center justify-between text-xs font-inter"
+                >
+                  <span className="text-on-surface font-medium">{item.name}</span>
+                  <span className="font-bold text-primary font-mono">
+                    {item.available} / {item.total} free
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Amenities Grid */}
-        <div className="mb-5">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-            Facilities &amp; Environment
-          </h4>
+        {/* Amenity Feature Matrix */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+          <div className="p-3 rounded-xl bg-surface-container border border-primary-container/60 flex items-center gap-2.5">
+            {location.is_quiet ? (
+              <VolumeX className="w-4 h-4 text-primary" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-tertiary" />
+            )}
+            <div>
+              <div className="text-[10px] text-on-surface-variant font-inter">Acoustics</div>
+              <div className="text-xs font-bold text-on-surface font-sora">{location.noise_level}</div>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              {location.is_quiet ? (
-                <VolumeX className="w-4 h-4 text-blue-400 shrink-0" />
-              ) : (
-                <Volume2 className="w-4 h-4 text-amber-400 shrink-0" />
-              )}
-              <div>
-                <div className="font-semibold text-slate-200 capitalize">{location.noise_level}</div>
-                <div className="text-[10px] text-slate-400">Acoustic Zone</div>
+          <div className="p-3 rounded-xl bg-surface-container border border-primary-container/60 flex items-center gap-2.5">
+            <Zap className={`w-4 h-4 ${location.has_charging ? 'text-primary' : 'text-outline'}`} />
+            <div>
+              <div className="text-[10px] text-on-surface-variant font-inter">Power Plugs</div>
+              <div className="text-xs font-bold text-on-surface font-sora">
+                {location.has_charging ? 'Available' : 'Limited'}
               </div>
             </div>
+          </div>
 
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <Zap className="w-4 h-4 text-emerald-400 shrink-0" />
-              <div>
-                <div className="font-semibold text-slate-200">
-                  {location.has_charging ? 'Outlets Available' : 'Limited Outlets'}
-                </div>
-                <div className="text-[10px] text-slate-400">Desk Power</div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-              <Wifi className="w-4 h-4 text-cyan-400 shrink-0" />
-              <div>
-                <div className="font-semibold text-slate-200">Gigabit Mesh</div>
-                <div className="text-[10px] text-slate-400">&gt; 350 Mbps</div>
+          <div className="p-3 rounded-xl bg-surface-container border border-primary-container/60 flex items-center gap-2.5">
+            <Wifi className="w-4 h-4 text-primary" />
+            <div>
+              <div className="text-[10px] text-on-surface-variant font-inter">Wi-Fi</div>
+              <div className="text-xs font-bold text-on-surface font-sora">
+                {location.has_fast_wifi ? 'Gigabit' : 'Standard'}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-3 pt-2">
+        {/* Modal Footer Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-surface-variant">
+          {/* Pick & Book Seat Button (BookMyShow Style) */}
           <button
             onClick={() => {
+              if (onBookSeat) onBookSeat(location);
               onClose();
+            }}
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs sm:text-sm shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
+          >
+            <Armchair className="w-4 h-4" />
+            <span>Pick &amp; Book Seat</span>
+          </button>
+
+          {/* Watch This Space */}
+          <button
+            onClick={() => {
               onNotify(location);
+              onClose();
             }}
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-95"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-surface-container hover:bg-surface-container-highest text-on-surface font-sora font-semibold text-xs border border-primary-container transition-colors cursor-pointer"
           >
-            <Eye className="w-4 h-4" />
-            <span>Watch This Space</span>
-          </button>
-
-          <button
-            onClick={() => {
-              window.open(`https://maps.google.com/?q=${location.latitude},${location.longitude}`, '_blank');
-            }}
-            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-            title="Open in Maps"
-          >
-            <Navigation className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => {
-              navigator.clipboard?.writeText?.(
-                `${location.name} in ${location.building}, ${location.floor}`
-              );
-              alert('Location info copied to clipboard!');
-            }}
-            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-            title="Share or Copy Location"
-          >
-            <Share2 className="w-4 h-4" />
+            <Eye className="w-4 h-4 text-tertiary" />
+            <span>Watch</span>
           </button>
         </div>
       </div>

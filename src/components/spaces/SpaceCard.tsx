@@ -19,6 +19,7 @@ import {
   Dumbbell,
   Clock,
   CheckCircle2,
+  Armchair,
 } from 'lucide-react';
 import {
   UserCoordinates,
@@ -30,6 +31,7 @@ interface SpaceCardProps {
   location: CampusLocation;
   onSelect: (location: CampusLocation) => void;
   onNotify: (location: CampusLocation) => void;
+  onBookSeat?: (location: CampusLocation) => void;
   highlighted?: boolean;
   userCoordinates?: UserCoordinates | null;
 }
@@ -38,6 +40,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
   location,
   onSelect,
   onNotify,
+  onBookSeat,
   highlighted = false,
   userCoordinates,
 }) => {
@@ -45,6 +48,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
     (location.current_occupancy / Math.max(1, location.capacity)) * 100
   );
   const isUnavailable = location.current_occupancy >= location.capacity || percentage >= 71;
+  const freeSeats = Math.max(0, location.capacity - location.current_occupancy);
 
   // Calculate live proximity if user coordinates available
   let displayMinutes = location.distance_minutes;
@@ -89,17 +93,17 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
       {/* Header Info */}
       <div>
         <div className="flex items-start justify-between gap-3 mb-2.5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="flex items-center gap-1 text-[11px] font-sora font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-surface-container text-on-surface border border-primary-container">
               {getTypeIcon()}
               {location.type.replace('_', ' ')}
             </span>
             <span className="text-xs text-on-surface-variant font-inter font-medium">
-              {location.building} • {location.floor}
+              {location.floor}
             </span>
           </div>
 
-          <span className="text-xs font-semibold text-primary flex items-center gap-1 font-inter">
+          <span className="text-xs font-semibold text-primary flex items-center gap-1 font-inter whitespace-nowrap">
             <Navigation className="w-3 h-3 text-primary" />
             {displayMinutes}m walk
           </span>
@@ -108,16 +112,42 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
         {/* Title */}
         <h3
           onClick={() => onSelect(location)}
-          className="font-sora text-base sm:text-lg font-bold text-on-surface hover:text-primary cursor-pointer transition-colors leading-tight mb-2"
+          className="font-sora text-base sm:text-lg font-bold text-on-surface hover:text-primary cursor-pointer transition-colors leading-tight mb-1.5"
         >
           {location.name}
         </h3>
+
+        {/* Tables & Seats Summary */}
+        <div className="flex items-center gap-2 text-xs text-on-surface-variant mb-2.5 font-inter">
+          <span className="flex items-center gap-1">
+            <Armchair className="w-3.5 h-3.5 text-tertiary" />
+            <strong>{location.table_count || 10}</strong> tables
+          </span>
+          <span>•</span>
+          <span>
+            <strong>{location.capacity}</strong> total seats (
+            <strong className="text-primary">{freeSeats} free</strong>)
+          </span>
+        </div>
 
         <p className="font-inter text-xs text-on-surface-variant line-clamp-2 mb-3 leading-relaxed">
           {location.description}
         </p>
 
-        {/* P2 Resource Callouts: Food Queue wait time */}
+        {/* Mess Provider Badge for Cafeteria Counters */}
+        {location.mess_provider && (
+          <div className="mb-3 px-3 py-1.5 rounded-xl bg-surface-container border border-primary-container/70 flex items-center justify-between text-xs">
+            <span className="font-sora font-bold text-on-surface flex items-center gap-1">
+              <Utensils className="w-3 h-3 text-primary" />
+              {location.mess_provider}
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-primary-container text-primary font-mono text-[10px] font-bold">
+              {location.meal_type}
+            </span>
+          </div>
+        )}
+
+        {/* Food Queue wait time */}
         {location.wait_time_minutes !== undefined && (
           <div className="mb-3 px-3 py-1.5 rounded-xl bg-tertiary-container/30 border border-tertiary/40 flex items-center justify-between text-xs text-tertiary">
             <span className="flex items-center gap-1 font-semibold font-sora">
@@ -128,7 +158,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           </div>
         )}
 
-        {/* P2 Resource Callouts: Sports Gear */}
+        {/* Sports Gear */}
         {location.equipment_items && location.equipment_items.length > 0 && (
           <div className="mb-3 px-3 py-1.5 rounded-xl bg-primary-container/30 border border-primary-container flex items-center justify-between text-xs text-primary">
             <span className="flex items-center gap-1 font-semibold font-sora">
@@ -150,16 +180,6 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           trend={location.trend}
         />
       </div>
-
-      {/* Best Time to Go & Freshness */}
-      {location.best_time_to_go && (
-        <div className="mb-3 px-2.5 py-1 rounded-lg bg-surface-container border border-primary-container/60 text-[11px] text-on-surface-variant flex items-center justify-between font-inter">
-          <span className="text-on-surface-variant">Best time:</span>
-          <span className="font-semibold text-primary truncate max-w-[170px]">
-            {location.best_time_to_go}
-          </span>
-        </div>
-      )}
 
       {/* Amenity Badges & Action Buttons */}
       <div>
@@ -199,17 +219,18 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           {/* Confidence Indicator */}
           <span className="ml-auto flex items-center gap-1 text-[10px] text-on-surface-variant">
             <CheckCircle2 className="w-3 h-3 text-primary" />
-            {location.report_count || 6} reports
+            {location.report_count || 8} reports
           </span>
         </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 pt-3 border-t border-surface-variant">
           <button
-            onClick={() => onSelect(location)}
+            onClick={() => (onBookSeat ? onBookSeat(location) : onSelect(location))}
             className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-surface-container hover:bg-surface-container-highest text-on-surface text-xs font-sora font-semibold border border-primary-container/60 transition-colors cursor-pointer"
           >
-            Details
+            <Armchair className="w-3.5 h-3.5 text-tertiary" />
+            <span>Book Seat</span>
           </button>
 
           {isUnavailable ? (

@@ -4,12 +4,14 @@ import React, { useState, useMemo } from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
 import { rankSpaces } from '@/lib/engine/recommendation';
 import { CampusLocation } from '@/types';
+import { SST_FLOOR_ORDER } from '@/lib/supabase/seed-data';
 import { Header } from '@/components/layout/Header';
 import { LandingPageSection } from '@/components/landing/LandingPageSection';
 import { LocationPermissionBanner } from '@/components/layout/LocationPermissionBanner';
 import { SpaceFilters } from '@/components/spaces/SpaceFilters';
 import { SpaceGrid } from '@/components/spaces/SpaceGrid';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
+import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
 import { CampusMap } from '@/components/map/CampusMap';
 import { FindSpaceModal } from '@/components/recommendation/FindSpaceModal';
 import { RecommendationBanner } from '@/components/recommendation/RecommendationBanner';
@@ -65,10 +67,18 @@ export default function CampusSpaceApp() {
   const [spaciousOnly, setSpaciousOnly] = useState(false);
   const [isActiveAlertsDrawerOpen, setIsActiveAlertsDrawerOpen] = useState(false);
   const [targetNotifyLocation, setTargetNotifyLocation] = useState<CampusLocation | null>(null);
+  const [targetBookingLocation, setTargetBookingLocation] = useState<CampusLocation | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  // Available floors in the active campus
+  // Available floors in strict order: Upper Basement -> Ground Floor -> Floor 1 -> Floor 2
   const availableFloors = useMemo(() => {
-    return Array.from(new Set(currentCampusLocations.map((l) => l.floor)));
+    const floorSet = Array.from(new Set(currentCampusLocations.map((l) => l.floor)));
+    return floorSet.sort((a, b) => {
+      const idxA = SST_FLOOR_ORDER.indexOf(a);
+      const idxB = SST_FLOOR_ORDER.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      return a.localeCompare(b);
+    });
   }, [currentCampusLocations]);
 
   // Compute top recommendation within active campus using live coordinates & category
@@ -99,7 +109,9 @@ export default function CampusSpaceApp() {
           loc.description.toLowerCase().includes(q) ||
           loc.floor.toLowerCase().includes(q) ||
           loc.type.toLowerCase().includes(q) ||
-          loc.category.toLowerCase().includes(q);
+          loc.category.toLowerCase().includes(q) ||
+          (loc.mess_provider && loc.mess_provider.toLowerCase().includes(q)) ||
+          (loc.meal_type && loc.meal_type.toLowerCase().includes(q));
         if (!matches) return false;
       }
 
@@ -145,6 +157,11 @@ export default function CampusSpaceApp() {
   const handleOpenNotify = (loc: CampusLocation) => {
     setTargetNotifyLocation(loc);
     setIsNotifyModalOpen(true);
+  };
+
+  const handleOpenBookSeat = (loc: CampusLocation) => {
+    setTargetBookingLocation(loc);
+    setIsBookingModalOpen(true);
   };
 
   const handleResetFilters = () => {
@@ -202,7 +219,7 @@ export default function CampusSpaceApp() {
                   : selectedCategory === 'study'
                   ? `📚 Study & Focus Spaces (${filteredLocations.length})`
                   : selectedCategory === 'food'
-                  ? `🍴 Cafeteria & Food Queues (${filteredLocations.length})`
+                  ? `🍴 Cafeteria & Mess Queues (${filteredLocations.length})`
                   : `🏀 Sports & Recreation (${filteredLocations.length})`}
               </div>
             </div>
@@ -245,6 +262,7 @@ export default function CampusSpaceApp() {
                 locations={filteredLocations}
                 onSelect={(loc) => setSelectedLocation(loc)}
                 onNotify={handleOpenNotify}
+                onBookSeat={handleOpenBookSeat}
                 highlightedId={topRecommendation?.location.id}
                 onResetFilters={handleResetFilters}
                 userCoordinates={userCoordinates}
@@ -275,15 +293,26 @@ export default function CampusSpaceApp() {
         userCoordinates={userCoordinates}
       />
 
-      {/* 2. Space Detail Modal with 1-Tap Crowd Reports */}
+      {/* 2. Space Detail Modal with 1-Tap Crowd Reports & Seat Booking */}
       <SpaceDetailModal
         location={selectedLocation}
         onClose={() => setSelectedLocation(null)}
         onNotify={handleOpenNotify}
+        onBookSeat={handleOpenBookSeat}
         onSubmitReport={submitCrowdReport}
       />
 
-      {/* 3. Watch This Space Threshold Modal */}
+      {/* 3. BookMyShow Interactive Seat Booking Modal */}
+      <SeatBookingModal
+        location={targetBookingLocation}
+        isOpen={isBookingModalOpen}
+        onClose={() => {
+          setIsBookingModalOpen(false);
+          setTargetBookingLocation(null);
+        }}
+      />
+
+      {/* 4. Watch This Space Threshold Modal */}
       <NotifyModal
         location={targetNotifyLocation}
         isOpen={isNotifyModalOpen}
@@ -296,7 +325,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 4. My Watches Drawer */}
+      {/* 5. My Watches Drawer */}
       <ActiveAlertsDrawer
         isOpen={isActiveAlertsDrawerOpen}
         onClose={() => setIsActiveAlertsDrawerOpen(false)}
@@ -309,7 +338,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 5. Triggered Alert Hero Toast (confetti + audio chime) */}
+      {/* 6. Triggered Alert Hero Toast (confetti + audio chime) */}
       <AlertToast
         data={activeAlertTrigger}
         onDismiss={clearAlertTrigger}
@@ -319,7 +348,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 6. Admin / Demo Simulator Control Tray */}
+      {/* 7. Admin / Demo Simulator Control Tray */}
       <SimulatorControlTray
         isOpen={isSimulatorOpen}
         onClose={() => setIsSimulatorOpen(false)}

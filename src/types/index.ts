@@ -20,6 +20,26 @@ export type ConfidenceLevel = 'high' | 'medium' | 'low';
 
 export type CampusId = 'sst_bangalore' | 'sst_20acre_new';
 
+export interface SeatInfo {
+  id: string; // e.g. 'T1-S1'
+  serial_number: string; // e.g. 'T1-S1'
+  table_number: number;
+  seat_index: number;
+  is_occupied: boolean;
+  booked_by_user?: boolean;
+}
+
+export interface SeatBooking {
+  id: string;
+  location_id: string;
+  location_name: string;
+  location_floor: string;
+  seat_number: string;
+  table_number: number;
+  booked_at: string;
+  expires_in_minutes: number;
+}
+
 export interface CampusLocation {
   id: string;
   code: string;
@@ -27,12 +47,13 @@ export interface CampusLocation {
   campus_id: CampusId;
   category: CampusResourceCategory;
   building: string;
-  floor: string; // e.g. 'Basement', 'Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Rooftop'
-  floor_level: number;
+  floor: string; // 'Upper Basement' | 'Ground Floor' | 'Floor 1' | 'Floor 2'
+  floor_level: number; // -1 for Upper Basement, 0 for Ground, 1 for Floor 1, 2 for Floor 2
   type: SpaceType;
   description: string;
   capacity: number;
   current_occupancy: number;
+  table_count?: number; // Number of tables in the room
   is_quiet: boolean;
   has_charging: boolean;
   has_fast_wifi: boolean;
@@ -55,6 +76,8 @@ export interface CampusLocation {
 
   // P2 Resource extensions (Food & Sports)
   wait_time_minutes?: number; // e.g. 4 for Chef Talk
+  mess_provider?: 'Cheftalk' | 'The Craving Brew';
+  meal_type?: 'Veg' | 'Non-Veg' | 'Jain' | 'Cafe & Snacks';
   equipment_items?: { name: string; available: number; total: number }[];
 
   created_at?: string;
@@ -99,12 +122,3 @@ export interface SpaceWatch {
 
 // Backward compatibility alias
 export type SpaceAlert = SpaceWatch;
-
-export interface OccupancyLog {
-  id: string;
-  location_id: string;
-  occupancy_count: number;
-  occupancy_percentage: number;
-  source: 'simulator' | 'student_report' | 'wifi_ap' | 'iot_sensor';
-  recorded_at: string;
-}
