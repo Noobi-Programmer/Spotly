@@ -25,6 +25,8 @@ export default function CampusSpaceApp() {
     currentCampusLocations,
     selectedCampus,
     setSelectedCampus,
+    selectedCategory,
+    setSelectedCategory,
     selectedFloor,
     setSelectedFloor,
     userCoordinates,
@@ -52,6 +54,7 @@ export default function CampusSpaceApp() {
     userPreferences,
     setUserPreferences,
     updateOccupancy,
+    submitCrowdReport,
     createAlert,
     removeAlert,
     runPresetScenario,
@@ -68,7 +71,7 @@ export default function CampusSpaceApp() {
     return Array.from(new Set(currentCampusLocations.map((l) => l.floor)));
   }, [currentCampusLocations]);
 
-  // Compute top recommendation within active campus using live coordinates
+  // Compute top recommendation within active campus using live coordinates & category
   const rankedSpaces = useMemo(() => {
     return rankSpaces(currentCampusLocations, userPreferences, userCoordinates);
   }, [currentCampusLocations, userPreferences, userCoordinates]);
@@ -86,7 +89,8 @@ export default function CampusSpaceApp() {
           loc.building.toLowerCase().includes(q) ||
           loc.description.toLowerCase().includes(q) ||
           loc.floor.toLowerCase().includes(q) ||
-          loc.type.toLowerCase().includes(q);
+          loc.type.toLowerCase().includes(q) ||
+          loc.category.toLowerCase().includes(q);
         if (!matches) return false;
       }
 
@@ -135,12 +139,14 @@ export default function CampusSpaceApp() {
 
   const handleResetFilters = () => {
     setSearchQuery('');
+    setSelectedCategory('all');
     setSelectedFloor('all');
     setFilterType('all');
     setFilterQuietOnly(false);
     setFilterChargingOnly(false);
     setSpaciousOnly(false);
     setUserPreferences({
+      category: 'all',
       study: true,
       quiet: false,
       charging: false,
@@ -186,6 +192,8 @@ export default function CampusSpaceApp() {
             <SpaceFilters
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
               selectedType={filterType}
               onTypeChange={setFilterType}
               selectedFloor={selectedFloor}
@@ -234,11 +242,12 @@ export default function CampusSpaceApp() {
         userCoordinates={userCoordinates}
       />
 
-      {/* 2. Space Detail Modal */}
+      {/* 2. Space Detail Modal with 1-Tap Crowd Reports */}
       <SpaceDetailModal
         location={selectedLocation}
         onClose={() => setSelectedLocation(null)}
         onNotify={handleOpenNotify}
+        onSubmitReport={submitCrowdReport}
       />
 
       {/* 3. Watch This Space Threshold Modal */}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserPreferences, CampusLocation } from '@/types';
+import { UserPreferences, CampusLocation, CampusResourceCategory } from '@/types';
 import { rankSpaces } from '@/lib/engine/recommendation';
 import {
   X,
@@ -15,6 +15,8 @@ import {
   ArrowRight,
   Check,
   BookOpen,
+  Utensils,
+  Dumbbell,
 } from 'lucide-react';
 import { UserCoordinates } from '@/lib/utils/geolocation';
 
@@ -35,7 +37,9 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
   onSelectRecommendedLocation,
   userCoordinates,
 }) => {
+  const [selectedPurpose, setSelectedPurpose] = useState<CampusResourceCategory>('study');
   const [preferences, setPreferences] = useState<UserPreferences>({
+    category: 'study',
     study: true,
     quiet: true,
     charging: true,
@@ -48,17 +52,26 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
 
   if (!isOpen) return null;
 
+  // Filter locations by purpose first if chosen
+  const filteredForModal = locations.filter(
+    (l) => l.category === selectedPurpose
+  );
+
   // Run deterministic ranking in real-time
-  const ranked = rankSpaces(locations, preferences, userCoordinates);
+  const ranked = rankSpaces(
+    filteredForModal.length > 0 ? filteredForModal : locations,
+    { ...preferences, category: selectedPurpose },
+    userCoordinates
+  );
   const topMatch = ranked[0];
 
   const handleApply = () => {
-    onApplyPreferences(preferences);
+    onApplyPreferences({ ...preferences, category: selectedPurpose });
     onClose();
   };
 
   const handleGoToTopMatch = () => {
-    onApplyPreferences(preferences);
+    onApplyPreferences({ ...preferences, category: selectedPurpose });
     if (topMatch) {
       onSelectRecommendedLocation(topMatch.location);
     }
@@ -77,13 +90,13 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
         </button>
 
         {/* Modal Header */}
-        <div className="mb-6">
+        <div className="mb-5">
           <div className="flex items-center gap-2 mb-1.5">
             <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               <Sparkles className="w-4 h-4 text-emerald-400" />
             </span>
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Find My Ideal Campus Space
+              Find My Ideal Campus Spot
             </h2>
           </div>
           <p className="text-xs text-slate-400">
@@ -91,64 +104,113 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
           </p>
         </div>
 
+        {/* Purpose Category Selection */}
+        <div className="mb-5">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
+            What are you looking for?
+          </label>
+          <div className="grid grid-cols-3 gap-2.5">
+            <button
+              type="button"
+              onClick={() => setSelectedPurpose('study')}
+              className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                selectedPurpose === 'study'
+                  ? 'bg-emerald-500/20 border-emerald-500 text-white shadow-sm'
+                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+              }`}
+            >
+              <BookOpen className={`w-5 h-5 ${selectedPurpose === 'study' ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span className="text-xs font-bold">Study &amp; Focus</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedPurpose('food')}
+              className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                selectedPurpose === 'food'
+                  ? 'bg-emerald-500/20 border-emerald-500 text-white shadow-sm'
+                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+              }`}
+            >
+              <Utensils className={`w-5 h-5 ${selectedPurpose === 'food' ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span className="text-xs font-bold">Food &amp; Queues</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedPurpose('sports')}
+              className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all ${
+                selectedPurpose === 'sports'
+                  ? 'bg-emerald-500/20 border-emerald-500 text-white shadow-sm'
+                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+              }`}
+            >
+              <Dumbbell className={`w-5 h-5 ${selectedPurpose === 'sports' ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span className="text-xs font-bold">Sports &amp; Turf</span>
+            </button>
+          </div>
+        </div>
+
         {/* Form Body - Scrollable */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-5 no-scrollbar">
           {/* Section 1: Study Vibe / Sound Environment */}
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2.5">
-              1. Acoustic &amp; Noise Environment
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setPreferences({ ...preferences, quiet: true })}
-                className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
-                  preferences.quiet
-                    ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-sm'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                }`}
-              >
-                <div
-                  className={`p-2 rounded-xl ${
-                    preferences.quiet ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+          {selectedPurpose === 'study' && (
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2.5">
+                1. Acoustic &amp; Noise Environment
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPreferences({ ...preferences, quiet: true })}
+                  className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                    preferences.quiet
+                      ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <VolumeX className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-100">Silent / Quiet Study</div>
-                  <div className="text-[11px] text-slate-400">Reading rooms, private carrels, focus nooks</div>
-                </div>
-              </button>
+                  <div
+                    className={`p-2 rounded-xl ${
+                      preferences.quiet ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <VolumeX className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-100">Silent / Quiet Study</div>
+                    <div className="text-[11px] text-slate-400">Reading rooms, private carrels, focus nooks</div>
+                  </div>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setPreferences({ ...preferences, quiet: false })}
-                className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
-                  !preferences.quiet
-                    ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-sm'
-                    : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                }`}
-              >
-                <div
-                  className={`p-2 rounded-xl ${
-                    !preferences.quiet ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                <button
+                  type="button"
+                  onClick={() => setPreferences({ ...preferences, quiet: false })}
+                  className={`p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                    !preferences.quiet
+                      ? 'bg-emerald-500/15 border-emerald-500 text-white shadow-sm'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
                   }`}
                 >
-                  <Volume2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-100">Collaborative / Lively</div>
-                  <div className="text-[11px] text-slate-400">Group pods, cafeteria, innovation lounges</div>
-                </div>
-              </button>
+                  <div
+                    className={`p-2 rounded-xl ${
+                      !preferences.quiet ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-100">Collaborative / Lively</div>
+                    <div className="text-[11px] text-slate-400">Group pods, cafeteria, innovation lounges</div>
+                  </div>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Section 2: Essential Amenities */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2.5">
-              2. Power &amp; Connectivity Requirements
+              2. Power &amp; Connectivity
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button

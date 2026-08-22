@@ -15,6 +15,10 @@ import {
   Laptop,
   Users,
   GraduationCap,
+  Utensils,
+  Dumbbell,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   UserCoordinates,
@@ -64,8 +68,11 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
         return <Laptop className="w-3.5 h-3.5" />;
       case 'classroom':
         return <GraduationCap className="w-3.5 h-3.5" />;
+      case 'food_counter':
       case 'cafeteria':
-        return <Coffee className="w-3.5 h-3.5" />;
+        return <Utensils className="w-3.5 h-3.5" />;
+      case 'sports_court':
+        return <Dumbbell className="w-3.5 h-3.5" />;
       default:
         return <Users className="w-3.5 h-3.5" />;
     }
@@ -106,22 +113,56 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           {location.name}
         </h3>
 
-        <p className="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">
+        <p className="text-xs text-slate-400 line-clamp-2 mb-3 leading-relaxed">
           {location.description}
         </p>
+
+        {/* P2 Resource Callouts (Food wait time or Sports equipment count) */}
+        {location.wait_time_minutes !== undefined && (
+          <div className="mb-3 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-300">
+            <span className="flex items-center gap-1 font-semibold">
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              Queue Wait Time
+            </span>
+            <span className="font-bold font-mono">~{location.wait_time_minutes} min wait</span>
+          </div>
+        )}
+
+        {location.equipment_items && location.equipment_items.length > 0 && (
+          <div className="mb-3 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs text-emerald-300">
+            <span className="flex items-center gap-1 font-semibold">
+              <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
+              Available Gear
+            </span>
+            <span className="font-bold">
+              {location.equipment_items[0].available} {location.equipment_items[0].name.toLowerCase()} free
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Live Occupancy Gauge */}
-      <div className="mb-4">
+      {/* Live Occupancy Gauge with Crowd Trend */}
+      <div className="mb-3">
         <OccupancyBadge
           currentOccupancy={location.current_occupancy}
           capacity={location.capacity}
+          trend={location.trend}
         />
       </div>
 
+      {/* Best Time to Go & Freshness */}
+      {location.best_time_to_go && (
+        <div className="mb-3 px-2.5 py-1 rounded-lg bg-slate-950/60 border border-slate-800/80 text-[11px] text-slate-300 flex items-center justify-between">
+          <span className="text-slate-400">Best time:</span>
+          <span className="font-semibold text-emerald-300 truncate max-w-[170px]">
+            {location.best_time_to_go}
+          </span>
+        </div>
+      )}
+
       {/* Amenity Badges & Action Buttons */}
       <div>
-        <div className="flex flex-wrap items-center gap-1.5 mb-4 text-[11px]">
+        <div className="flex flex-wrap items-center gap-1.5 mb-3.5 text-[11px]">
           {/* Noise Rating */}
           <span
             className={`flex items-center gap-1 px-2 py-0.5 rounded-md border font-medium ${
@@ -150,9 +191,15 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           {location.has_fast_wifi && (
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/25 font-medium">
               <Wifi className="w-3 h-3 text-cyan-400" />
-              Gigabit Wi-Fi
+              Gigabit
             </span>
           )}
+
+          {/* Confidence Indicator */}
+          <span className="ml-auto flex items-center gap-1 text-[10px] text-slate-400">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            {location.report_count || 6} reports
+          </span>
         </div>
 
         {/* Action Buttons */}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CampusLocation } from '@/types';
 import { OccupancyBadge } from './OccupancyBadge';
 import {
@@ -13,31 +13,45 @@ import {
   Wifi,
   Clock,
   Share2,
-  ExternalLink,
+  CheckCircle2,
+  Sparkles,
+  Users,
+  Dumbbell,
+  Utensils,
+  Check,
 } from 'lucide-react';
 
 interface SpaceDetailModalProps {
   location: CampusLocation | null;
   onClose: () => void;
   onNotify: (loc: CampusLocation) => void;
+  onSubmitReport?: (locationId: string, level: 'empty' | 'moderate' | 'full') => void;
 }
 
 export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
   location,
   onClose,
   onNotify,
+  onSubmitReport,
 }) => {
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+
   if (!location) return null;
 
   const percentage = Math.round(
     (location.current_occupancy / Math.max(1, location.capacity)) * 100
   );
   const availableSeats = Math.max(0, location.capacity - location.current_occupancy);
-  const isFull = location.current_occupancy >= location.capacity;
+
+  const handleQuickReport = (level: 'empty' | 'moderate' | 'full') => {
+    onSubmitReport?.(location.id, level);
+    setReportSubmitted(true);
+    setTimeout(() => setReportSubmitted(false), 2000);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl rounded-3xl glass-panel border border-slate-700/80 bg-slate-900/95 shadow-2xl p-6 sm:p-8 overflow-hidden">
+      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl glass-panel border border-slate-700/80 bg-slate-900/95 shadow-2xl p-6 sm:p-8 no-scrollbar">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -65,25 +79,26 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           {location.name}
         </h2>
 
-        <p className="text-sm text-slate-300 leading-relaxed mb-6">
+        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5">
           {location.description}
         </p>
 
         {/* Occupancy Status Section */}
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/90 mb-6">
+        <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/90 mb-5">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Current Space Telemetry
+              Live Crowd Telemetry
             </span>
             <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Live Sensor Feed
+              Live Signal Stream
             </span>
           </div>
 
           <OccupancyBadge
             currentOccupancy={location.current_occupancy}
             capacity={location.capacity}
+            trend={location.trend}
             size="lg"
           />
 
@@ -103,8 +118,94 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           </div>
         </div>
 
+        {/* P1: Best Time to Go & Peak Hours Callout */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 border border-emerald-500/30 mb-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Best Time to Go (Predictive Insight)</span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div>
+              <div className="text-slate-200 font-bold text-sm">
+                {location.best_time_to_go || 'Around 6:15 PM'}
+              </div>
+              <div className="text-[11px] text-slate-400">
+                Peak hours usually: {location.peak_hours || '1:00 PM – 4:00 PM'}
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold self-start sm:self-auto">
+              Expected ~40% crowd
+            </span>
+          </div>
+        </div>
+
+        {/* P1: Community Crowd Validation & 1-Tap Quick Report */}
+        <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-cyan-400" />
+              Community Crowd Validation
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              🟢 {location.confidence === 'high' ? 'High Confidence' : 'Medium Confidence'}
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-400 mb-3">
+            Reported by <strong>{location.report_count || 8} students</strong> • Last updated{' '}
+            <strong>{location.last_reported_minutes_ago || 2}m ago</strong>. Help fellow students:
+          </p>
+
+          {/* 1-Tap Quick Report Buttons */}
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              onClick={() => handleQuickReport('empty')}
+              className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-emerald-950/50 hover:border-emerald-500/50 border border-slate-800 text-[11px] font-bold text-emerald-300 transition-all flex items-center justify-center gap-1"
+            >
+              <span>🟢 Empty</span>
+            </button>
+            <button
+              onClick={() => handleQuickReport('moderate')}
+              className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-amber-950/50 hover:border-amber-500/50 border border-slate-800 text-[11px] font-bold text-amber-300 transition-all flex items-center justify-center gap-1"
+            >
+              <span>🟡 Moderate</span>
+            </button>
+            <button
+              onClick={() => handleQuickReport('full')}
+              className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-rose-950/50 hover:border-rose-500/50 border border-slate-800 text-[11px] font-bold text-rose-300 transition-all flex items-center justify-center gap-1"
+            >
+              <span>🔴 Full</span>
+            </button>
+          </div>
+
+          {reportSubmitted && (
+            <div className="mt-2 text-center text-xs font-bold text-emerald-400 animate-in fade-in flex items-center justify-center gap-1">
+              <Check className="w-3.5 h-3.5 stroke-[3]" />
+              <span>Thanks! Crowd report updated instantly.</span>
+            </div>
+          )}
+        </div>
+
+        {/* P2: Sports Equipment Inventory (if sports) */}
+        {location.equipment_items && location.equipment_items.length > 0 && (
+          <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 mb-5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">
+              <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Equipment Available to Borrow</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {location.equipment_items.map((eq, i) => (
+                <div key={i} className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center">
+                  <span className="text-slate-300">{eq.name}</span>
+                  <span className="font-bold text-emerald-400">{eq.available} / {eq.total} free</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Amenities Grid */}
-        <div className="mb-6">
+        <div className="mb-5">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
             Facilities &amp; Environment
           </h4>
@@ -142,37 +243,8 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Typical Daily Pattern Sparkline */}
-        <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800/60 mb-6">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span className="flex items-center gap-1 font-medium">
-              <Clock className="w-3.5 h-3.5 text-slate-400" />
-              Estimated Peak Hours
-            </span>
-            <span className="text-[11px] text-slate-400">Peak: 1:00 PM - 4:00 PM</span>
-          </div>
-
-          <div className="flex items-end gap-1.5 h-10 pt-2">
-            {[20, 35, 60, 85, 92, 88, 70, 45, 25].map((height, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                <div
-                  className="w-full rounded-t-sm bg-gradient-to-t from-slate-800 to-slate-600 transition-all hover:to-emerald-400"
-                  style={{ height: `${height}%` }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between text-[9px] text-slate-400 font-mono mt-1 px-1">
-            <span>8 AM</span>
-            <span>12 PM</span>
-            <span>4 PM</span>
-            <span>8 PM</span>
-            <span>11 PM</span>
-          </div>
-        </div>
-
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pt-2">
           <button
             onClick={() => {
               onClose();
@@ -186,7 +258,6 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
 
           <button
             onClick={() => {
-              const query = encodeURIComponent(`${location.name} ${location.building} Bangalore`);
               window.open(`https://maps.google.com/?q=${location.latitude},${location.longitude}`, '_blank');
             }}
             className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"

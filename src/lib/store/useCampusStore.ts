@@ -7,6 +7,8 @@ import {
   UserPreferences,
   SpaceType,
   CampusId,
+  CampusResourceCategory,
+  CrowdTrend,
 } from '@/types';
 import { INITIAL_CAMPUS_LOCATIONS } from '@/lib/supabase/seed-data';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
@@ -48,6 +50,7 @@ export function useCampusStore() {
   } | null>(null);
 
   const [selectedCampus, setSelectedCampus] = useState<CampusId>('sst_bangalore');
+  const [selectedCategory, setSelectedCategory] = useState<CampusResourceCategory | 'all'>('all');
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState<CampusLocation | null>(null);
   const [isFindModalOpen, setIsFindModalOpen] = useState(false);
@@ -65,6 +68,7 @@ export function useCampusStore() {
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+    category: 'all',
     study: true,
     quiet: false,
     charging: false,
@@ -152,10 +156,23 @@ export function useCampusStore() {
     const handleBroadcast = (event: MessageEvent) => {
       const { type, payload } = event.data || {};
       if (type === 'OCCUPANCY_UPDATE') {
-        const { locationId, newOccupancy } = payload;
+        const { locationId, newOccupancy, trend } = payload;
         const target = globalLocations.find((l) => l.id === locationId);
         if (target) {
           target.current_occupancy = newOccupancy;
+          if (trend) target.trend = trend;
+          evaluateAlertsLocally(target);
+          notifyGlobalListeners();
+        }
+      } else if (type === 'CROWD_REPORT') {
+        const { locationId, newOccupancy, trend, reportCount } = payload;
+        const target = globalLocations.find((l) => l.id === locationId);
+        if (target) {
+          target.current_occupancy = newOccupancy;
+          target.trend = trend;
+          target.report_count = reportCount;
+          target.last_reported_minutes_ago = 0;
+          target.confidence = 'high';
           evaluateAlertsLocally(target);
           notifyGlobalListeners();
         }
@@ -224,7 +241,15 @@ export function useCampusStore() {
         0,
         Math.min(loc.capacity, Math.round(newOccupancy))
       );
+      
+      const prevOcc = loc.current_occupancy;
       loc.current_occupancy = clampedOccupancy;
+
+      // Calculate dynamic trend
+      let calculatedTrend: CrowdTrend = 'steady';
+      if (clampedOccupancy > prevOcc + 1) calculatedTrend = 'getting_busier';
+      else if (clampedOccupancy < prevOcc - 1) calculatedTrend = 'clearing_up';
+      loc.trend = calculatedTrend;
 
       evaluateAlertsLocally(loc);
       notifyGlobalListeners();
@@ -232,7 +257,7 @@ export function useCampusStore() {
       // Broadcast to other browser tabs
       broadcastChannel?.postMessage({
         type: 'OCCUPANCY_UPDATE',
-        payload: { locationId, newOccupancy: clampedOccupancy },
+        payload: { locationId, newOccupancy: clampedOccupancy, trend: calculatedTrend },
       });
 
       // Update Supabase if connected
@@ -246,6 +271,49 @@ export function useCampusStore() {
           console.warn('Failed to update Supabase:', e);
         }
       }
+    },
+    [evaluateAlertsLocally]
+  );
+
+  // Submit Student Crowd Report (1-Tap community validation)
+  const submitCrowdReport = useCallback(
+    async (locationId: string, level: 'empty' | 'moderate' | 'full') => {
+      const loc = globalLocations.find((l) => l.id === locationId);
+      if (!loc) return;
+
+      let targetCount = loc.current_occupancy;
+      let targetTrend: CrowdTrend = 'steady';
+
+      if (level === 'empty') {
+        targetCount = Math.max(0, Math.round(loc.capacity * 0.2));
+        targetTrend = 'clearing_up';
+      } else if (level === 'moderate') {
+        targetCount = Math.round(loc.capacity * 0.5);
+        targetTrend = 'steady';
+      } else if (level === 'full') {
+        targetCount = Math.min(loc.capacity, Math.round(loc.capacity * 0.85));
+        targetTrend = 'getting_busier';
+      }
+
+      loc.current_occupancy = targetCount;
+      loc.trend = targetTrend;
+      loc.report_count = (loc.report_count || 5) + 1;
+      loc.last_reported_minutes_ago = 0;
+      loc.confidence = 'high';
+
+      evaluateAlertsLocally(loc);
+      notifyGlobalListeners();
+
+      // Broadcast across tabs
+      broadcastChannel?.postMessage({
+        type: 'CROWD_REPORT',
+        payload: {
+          locationId,
+          newOccupancy: targetCount,
+          trend: targetTrend,
+          reportCount: loc.report_count,
+        },
+      });
     },
     [evaluateAlertsLocally]
   );
@@ -345,9 +413,11 @@ export function useCampusStore() {
     [updateOccupancy]
   );
 
-  // Filtered by active campus
+  // Filtered by active campus & optional category
   const currentCampusLocations = globalLocations.filter(
-    (l) => l.campus_id === selectedCampus
+    (l) =>
+      l.campus_id === selectedCampus &&
+      (selectedCategory === 'all' || l.category === selectedCategory)
   );
 
   const totalCapacity = currentCampusLocations.reduce((acc, l) => acc + l.capacity, 0);
@@ -368,6 +438,8 @@ export function useCampusStore() {
     currentCampusLocations,
     selectedCampus,
     setSelectedCampus,
+    selectedCategory,
+    setSelectedCategory,
     selectedFloor,
     setSelectedFloor,
     userCoordinates,
@@ -399,6 +471,7 @@ export function useCampusStore() {
     userPreferences,
     setUserPreferences,
     updateOccupancy,
+    submitCrowdReport,
     createAlert,
     removeAlert,
     runPresetScenario,
