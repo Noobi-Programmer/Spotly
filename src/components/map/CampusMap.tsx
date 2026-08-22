@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { CampusLocation, CampusId } from '@/types';
 import { getCrowdColor } from '@/lib/engine/recommendation';
 import { OccupancyBadge } from '../spaces/OccupancyBadge';
-import { Layers, Navigation, VolumeX, Volume2, Zap, Wifi, Eye, Sparkles } from 'lucide-react';
+import { Sparkles, Layers } from 'lucide-react';
 
 interface CampusMapProps {
   locations: CampusLocation[];
@@ -39,16 +39,16 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           <div className="flex items-center gap-2">
             <h3 className="font-sora text-lg sm:text-xl font-bold text-on-surface tracking-tight">
               {selectedCampus === 'sst_bangalore'
-                ? 'SST Bangalore Campus Floor Map'
+                ? 'SST Bangalore Campus Architectural Map'
                 : 'New 20-Acre Campus Master Plan Preview'}
             </h3>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-container/60 text-primary border border-primary-container font-mono">
-              LIVE TELEMETRY
+              MATTERPORT SYNCED
             </span>
           </div>
           <p className="text-xs text-on-surface-variant font-inter mt-0.5">
             {selectedCampus === 'sst_bangalore'
-              ? 'Electronic City Phase 1 • Select floor level to view room availability.'
+              ? 'Electronic City Phase 1 • Select floor level to view room & counter availability.'
               : 'Architectural multi-building master plan for the upcoming 20-acre tech campus.'}
           </p>
         </div>
@@ -77,14 +77,14 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              All Floors
+              All Levels
             </button>
           </div>
         )}
       </div>
 
       {/* SVG Interactive Floorplan Container */}
-      <div className="relative w-full h-[400px] sm:h-[460px] rounded-xl bg-surface border border-primary-container/60 overflow-hidden">
+      <div className="relative w-full h-[400px] sm:h-[480px] rounded-xl bg-surface border border-primary-container/60 overflow-hidden">
         {/* SVG Floor Layout */}
         <svg
           viewBox="0 0 1000 560"
@@ -111,9 +111,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
 
           {/* Floor Perimeter Boundary */}
           <rect
-            x="60"
+            x="50"
             y="40"
-            width="880"
+            width="900"
             height="480"
             rx="24"
             fill="#151e0a"
@@ -122,7 +122,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             strokeDasharray="6 6"
           />
           <text
-            x="90"
+            x="80"
             y="75"
             fill="#8c9387"
             fontSize="13"
@@ -131,19 +131,18 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             fontFamily="Sora"
           >
             {selectedCampus === 'sst_bangalore'
-              ? `SST MAIN BLOCK • ${mapFloor.toUpperCase()}`
+              ? `SST ELECTRONIC CITY • ${mapFloor.toUpperCase()}`
               : '20-ACRE INNOVATION MASTER PARK'}
           </text>
 
           {/* Render Room Nodes */}
-          {filteredLocations.map((loc, idx) => {
+          {filteredLocations.map((loc) => {
             const pct = Math.round(
               (loc.current_occupancy / Math.max(1, loc.capacity)) * 100
             );
             const isRecommended = recommendedLocationId === loc.id;
             const colors = getCrowdColor(pct);
 
-            // Compute clean x coordinate if multiple rooms on 'all'
             const nodeX = loc.coordinates_x;
             const nodeY = loc.coordinates_y;
 
@@ -204,7 +203,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   {loc.name.length > 22 ? loc.name.substring(0, 20) + '…' : loc.name}
                 </text>
 
-                {/* Floor Info */}
+                {/* Floor Info / Wait time info */}
                 <text
                   x={nodeX}
                   y={nodeY + 2}
@@ -213,7 +212,9 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   fontSize="10"
                   fontFamily="Inter"
                 >
-                  {loc.floor} • {loc.distance_minutes} min walk
+                  {loc.wait_time_minutes !== undefined
+                    ? `~${loc.wait_time_minutes} min wait queue`
+                    : `${loc.floor} • ${loc.distance_minutes}m walk`}
                 </text>
 
                 {/* Live Occupancy Metric */}
@@ -278,10 +279,10 @@ export const CampusMap: React.FC<CampusMapProps> = ({
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h4 className="font-sora text-sm font-bold text-on-surface">
-            Rooms on {mapFloor === 'all' ? 'All Floors' : mapFloor} ({filteredLocations.length})
+            Spaces &amp; Counters on {mapFloor === 'all' ? 'All Levels' : mapFloor} ({filteredLocations.length})
           </h4>
           <span className="text-xs text-on-surface-variant font-inter">
-            Click any room to open detailed telemetry or set crowd alerts
+            Click any space to open detailed telemetry or set crowd alerts
           </span>
         </div>
 
