@@ -81,7 +81,7 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
             </h2>
           </div>
           <p className="text-xs text-slate-400">
-            Tell CampusSpace what you need right now. We rank available spots in under 2ms.
+            Tell Spotly what you need right now. We rank available spots in under 2ms.
           </p>
         </div>
 

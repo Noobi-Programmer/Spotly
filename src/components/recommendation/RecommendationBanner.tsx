@@ -56,7 +56,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
           <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-emerald-500/25 mb-4">
             <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Why CampusSpace recommends this spot:
+              Why Spotly recommends this spot:
             </div>
             <div className="flex flex-wrap gap-2">
               {reasons.map((reason, idx) => (

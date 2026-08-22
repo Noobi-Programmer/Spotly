@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'CampusSpace — Know where to study right now',
+  title: 'Spotly — Know where to study right now',
   description:
     'Real-time campus occupancy telemetry, deterministic facility matching, and instant space availability alerts.',
 };

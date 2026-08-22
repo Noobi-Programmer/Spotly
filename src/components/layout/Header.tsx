@@ -26,11 +26,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenActiveAlerts }) => {
         {/* Brand & Tagline */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-black text-xl">
-            C
+            S
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg text-white tracking-tight">CampusSpace</span>
+              <span className="font-bold text-lg text-white tracking-tight">Spotly</span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 LIVE
               </span>

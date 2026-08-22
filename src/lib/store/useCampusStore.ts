@@ -8,7 +8,7 @@ import { getOrCreateSessionId } from '@/lib/utils/session';
 import { playAlertChime } from '@/lib/engine/sound';
 
 // BroadcastChannel for instant multi-tab sync across browser windows
-const BROADCAST_CHANNEL_NAME = 'campus_space_realtime_channel';
+const BROADCAST_CHANNEL_NAME = 'spotly_realtime_channel';
 
 // In-memory global store to share state across components in the same tab
 let globalLocations: CampusLocation[] = [...INITIAL_CAMPUS_LOCATIONS];

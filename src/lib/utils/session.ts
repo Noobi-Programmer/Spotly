@@ -5,7 +5,7 @@
 export function getOrCreateSessionId(): string {
   if (typeof window === 'undefined') return 'server-session';
 
-  const STORAGE_KEY = 'campus_space_session_id';
+  const STORAGE_KEY = 'spotly_session_id';
   let sessionId = localStorage.getItem(STORAGE_KEY);
 
   if (!sessionId) {

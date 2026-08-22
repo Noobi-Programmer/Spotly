@@ -1,5 +1,5 @@
 -- ==============================================================================
--- CampusSpace - Production Supabase Schema & Realtime Trigger Pipeline
+-- Spotly - Production Supabase Schema & Realtime Trigger Pipeline
 -- ==============================================================================
 
 -- 1. Enable UUID Extension

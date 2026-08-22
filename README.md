@@ -1,4 +1,4 @@
-# CampusSpace 🎓
+# Spotly 🎓
 
 > **Don't wait. Don't wander. Just know.**  
 > *Transforming campus navigation from "Where is this place?" to "Where should I go right now?"*

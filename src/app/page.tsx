@@ -237,10 +237,10 @@ export default function CampusSpaceApp() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm">
-              C
+              S
             </div>
             <div>
-              <span className="font-bold text-slate-200">CampusSpace</span> — Realtime Campus Decision Engine
+              <span className="font-bold text-slate-200">Spotly</span> — Realtime Campus Decision Engine
             </div>
           </div>
 

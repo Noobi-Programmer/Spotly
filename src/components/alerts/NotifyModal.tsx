@@ -121,7 +121,7 @@ export const NotifyModal: React.FC<NotifyModalProps> = ({
           <div className="p-3 rounded-xl bg-slate-950/40 border border-slate-800/80 text-[11px] text-slate-400 flex items-start gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <span>
-              Real-time monitoring is active. You will receive an instant audio chime and screen alert
+              Spotly is watching this space. You will receive an instant audio chime and screen alert
               when occupancy drops to <strong>{threshold}%</strong> or below.
             </span>
           </div>
