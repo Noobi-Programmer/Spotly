@@ -161,25 +161,37 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 onMouseLeave={() => setHoveredLoc(null)}
                 className="cursor-pointer transition-all duration-300"
               >
-                {/* Pulsing Radar Beacon for Top Recommendation */}
+                {/* Clean Top Match Badge Tag (Replaces awkward circle) */}
                 {isRecommended && (
-                  <circle
-                    cx={nodeX}
-                    cy={nodeY}
-                    r="55"
-                    fill="none"
-                    stroke="#a6d29b"
-                    strokeWidth="3"
-                    className="radar-beacon opacity-80"
-                  />
+                  <g>
+                    <rect
+                      x={nodeX - 45}
+                      y={nodeY - 65}
+                      width="90"
+                      height="18"
+                      rx="6"
+                      fill="#c5cc7b"
+                    />
+                    <text
+                      x={nodeX}
+                      y={nodeY - 53}
+                      textAnchor="middle"
+                      fill="#1b1d00"
+                      fontSize="9"
+                      fontWeight="bold"
+                      fontFamily="Sora"
+                    >
+                      ★ TOP MATCH
+                    </text>
+                  </g>
                 )}
 
                 {/* Room Geometry Card */}
                 <rect
                   x={nodeX - 95}
-                  y={nodeY - 50}
+                  y={nodeY - 45}
                   width="190"
-                  height="100"
+                  height="95"
                   rx="14"
                   fill="#19220e"
                   stroke={isRecommended ? '#c5cc7b' : '#31572c'}
@@ -190,7 +202,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 {/* Heat Indicator Color Bar on Top */}
                 <rect
                   x={nodeX - 95}
-                  y={nodeY - 50}
+                  y={nodeY - 45}
                   width="190"
                   height="5"
                   rx="2.5"
@@ -200,7 +212,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 {/* Room Name */}
                 <text
                   x={nodeX}
-                  y={nodeY - 18}
+                  y={nodeY - 16}
                   textAnchor="middle"
                   fill="#dbe7c6"
                   fontSize="11"
@@ -213,7 +225,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 {/* Table and Seat Info */}
                 <text
                   x={nodeX}
-                  y={nodeY + 2}
+                  y={nodeY + 4}
                   textAnchor="middle"
                   fill="#8c9387"
                   fontSize="9.5"
@@ -226,7 +238,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 {/* Live Occupancy Metric */}
                 <text
                   x={nodeX}
-                  y={nodeY + 24}
+                  y={nodeY + 26}
                   textAnchor="middle"
                   fill={colors.hex}
                   fontSize="12"
