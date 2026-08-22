@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { getCrowdColor, getCrowdStatus } from '@/lib/engine/recommendation';
+import { getCrowdColor, getOccupancyTier } from '@/lib/engine/recommendation';
 import { cn } from '@/lib/utils/cn';
 
 interface OccupancyBadgeProps {
@@ -18,15 +18,16 @@ export const OccupancyBadge: React.FC<OccupancyBadgeProps> = ({
   size = 'md',
 }) => {
   const percentage = Math.round((currentOccupancy / Math.max(1, capacity)) * 100);
-  const status = getCrowdStatus(percentage);
+  const tier = getOccupancyTier(percentage);
   const colors = getCrowdColor(percentage);
   const availableSeats = Math.max(0, capacity - currentOccupancy);
 
   const statusLabel = {
-    spacious: 'Spacious',
-    moderate: 'Moderate',
-    full: 'High Crowd',
-  }[status];
+    low: 'LOW CROWD',
+    moderate: 'MODERATE',
+    high: 'HIGH CROWD',
+    full: 'FULL',
+  }[tier];
 
   if (size === 'sm') {
     return (
@@ -50,7 +51,7 @@ export const OccupancyBadge: React.FC<OccupancyBadgeProps> = ({
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border',
+            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border tracking-wider',
             colors.badge
           )}
         >

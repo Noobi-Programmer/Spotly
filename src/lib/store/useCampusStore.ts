@@ -1,18 +1,29 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { CampusLocation, SpaceAlert, UserPreferences, SpaceType, CampusId } from '@/types';
+import {
+  CampusLocation,
+  SpaceWatch,
+  UserPreferences,
+  SpaceType,
+  CampusId,
+} from '@/types';
 import { INITIAL_CAMPUS_LOCATIONS } from '@/lib/supabase/seed-data';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { getOrCreateSessionId } from '@/lib/utils/session';
 import { playAlertChime } from '@/lib/engine/sound';
+import {
+  UserCoordinates,
+  GeolocationPermissionState,
+  requestSessionLocation,
+} from '@/lib/utils/geolocation';
 
 // BroadcastChannel for instant multi-tab sync across browser windows
 const BROADCAST_CHANNEL_NAME = 'spotly_realtime_channel';
 
 // In-memory global store to share state across components in the same tab
 let globalLocations: CampusLocation[] = [...INITIAL_CAMPUS_LOCATIONS];
-let globalAlerts: SpaceAlert[] = [];
+let globalAlerts: SpaceWatch[] = [];
 let globalListeners: Set<() => void> = new Set();
 let broadcastChannel: BroadcastChannel | null = null;
 
@@ -31,7 +42,7 @@ function notifyGlobalListeners() {
 export function useCampusStore() {
   const [, setTick] = useState(0);
   const [activeAlertTrigger, setActiveAlertTrigger] = useState<{
-    alert: SpaceAlert;
+    alert: SpaceWatch;
     location: CampusLocation;
     occupancyPct: number;
   } | null>(null);
@@ -46,11 +57,20 @@ export function useCampusStore() {
   const [filterType, setFilterType] = useState<SpaceType | 'all'>('all');
   const [filterQuietOnly, setFilterQuietOnly] = useState(false);
   const [filterChargingOnly, setFilterChargingOnly] = useState(false);
+
+  // User Geolocation State
+  const [userCoordinates, setUserCoordinates] = useState<UserCoordinates | null>(null);
+  const [locationPermissionState, setLocationPermissionState] =
+    useState<GeolocationPermissionState>('prompt');
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+    study: true,
     quiet: false,
     charging: false,
     wifi: false,
     low_crowd: false,
+    nearby: false,
     type: 'all',
     floor: 'all',
   });
@@ -64,9 +84,20 @@ export function useCampusStore() {
     };
   }, []);
 
+  // Request browser geolocation (One-shot, safe session level)
+  const requestLocation = useCallback(async () => {
+    setIsRequestingLocation(true);
+    const result = await requestSessionLocation();
+    setUserCoordinates(result.coordinates);
+    setLocationPermissionState(result.state);
+    setIsRequestingLocation(false);
+  }, []);
+
   // Check and fire alerts when occupancy changes
   const evaluateAlertsLocally = useCallback((updatedLoc: CampusLocation) => {
-    const occPct = Math.round((updatedLoc.current_occupancy / Math.max(1, updatedLoc.capacity)) * 100);
+    const occPct = Math.round(
+      (updatedLoc.current_occupancy / Math.max(1, updatedLoc.capacity)) * 100
+    );
     const sessionId = getOrCreateSessionId();
 
     globalAlerts = globalAlerts.map((alert) => {
@@ -76,14 +107,31 @@ export function useCampusStore() {
         occPct <= alert.threshold_percentage
       ) {
         // Trigger alert!
-        const triggeredAlert: SpaceAlert = {
+        const triggeredAlert: SpaceWatch = {
           ...alert,
           is_active: false,
           triggered_at: new Date().toISOString(),
         };
 
         if (alert.user_session_id === sessionId) {
+          // Play synthesized Web Audio chime
           playAlertChime();
+
+          // Dispatch native browser notification if granted
+          if (typeof window !== 'undefined' && 'Notification' in window) {
+            if (Notification.permission === 'granted') {
+              try {
+                new Notification(`Spotly: ${updatedLoc.name} is ready!`, {
+                  body: `Occupancy dropped to ${occPct}%, which is below your ${alert.threshold_percentage}% threshold.`,
+                  icon: '/favicon.ico',
+                });
+              } catch (e) {
+                // notification fallback
+              }
+            }
+          }
+
+          // Show in-app hero toast
           setActiveAlertTrigger({
             alert: triggeredAlert,
             location: updatedLoc,
@@ -172,7 +220,10 @@ export function useCampusStore() {
       const loc = globalLocations.find((l) => l.id === locationId);
       if (!loc) return;
 
-      const clampedOccupancy = Math.max(0, Math.min(loc.capacity, Math.round(newOccupancy)));
+      const clampedOccupancy = Math.max(
+        0,
+        Math.min(loc.capacity, Math.round(newOccupancy))
+      );
       loc.current_occupancy = clampedOccupancy;
 
       evaluateAlertsLocally(loc);
@@ -199,34 +250,45 @@ export function useCampusStore() {
     [evaluateAlertsLocally]
   );
 
-  // Create Alert Action
+  // Create Watch / Alert Action
   const createAlert = useCallback(
     async (locationId: string, thresholdPercentage: number) => {
+      // Also request notification permission in background if not asked yet
+      if (
+        typeof window !== 'undefined' &&
+        'Notification' in window &&
+        Notification.permission === 'default'
+      ) {
+        Notification.requestPermission().catch(() => {});
+      }
+
       const sessionId = getOrCreateSessionId();
       const loc = globalLocations.find((l) => l.id === locationId);
-      const newAlert: SpaceAlert = {
-        id: 'alert_' + Math.random().toString(36).substring(2, 9),
+      const newWatch: SpaceWatch = {
+        id: 'watch_' + Math.random().toString(36).substring(2, 9),
         user_session_id: sessionId,
         location_id: locationId,
         location_name: loc?.name || 'SST Space',
+        location_floor: loc?.floor,
+        location_building: loc?.building,
         threshold_percentage: thresholdPercentage,
         is_active: true,
         created_at: new Date().toISOString(),
       };
 
-      globalAlerts = [newAlert, ...globalAlerts];
+      globalAlerts = [newWatch, ...globalAlerts];
       notifyGlobalListeners();
 
       broadcastChannel?.postMessage({
         type: 'NEW_ALERT',
-        payload: newAlert,
+        payload: newWatch,
       });
 
       if (isSupabaseConfigured() && supabase) {
         try {
           await supabase.from('alerts').insert([
             {
-              id: newAlert.id,
+              id: newWatch.id,
               user_session_id: sessionId,
               location_id: locationId,
               threshold_percentage: thresholdPercentage,
@@ -249,7 +311,7 @@ export function useCampusStore() {
     [evaluateAlertsLocally]
   );
 
-  // Remove alert
+  // Remove watch
   const removeAlert = useCallback((alertId: string) => {
     globalAlerts = globalAlerts.filter((a) => a.id !== alertId);
     notifyGlobalListeners();
@@ -289,7 +351,10 @@ export function useCampusStore() {
   );
 
   const totalCapacity = currentCampusLocations.reduce((acc, l) => acc + l.capacity, 0);
-  const totalOccupancy = currentCampusLocations.reduce((acc, l) => acc + l.current_occupancy, 0);
+  const totalOccupancy = currentCampusLocations.reduce(
+    (acc, l) => acc + l.current_occupancy,
+    0
+  );
   const campusOccupancyPercentage = Math.round(
     (totalOccupancy / Math.max(1, totalCapacity)) * 100
   );
@@ -305,12 +370,16 @@ export function useCampusStore() {
     setSelectedCampus,
     selectedFloor,
     setSelectedFloor,
+    userCoordinates,
+    locationPermissionState,
+    isRequestingLocation,
+    requestLocation,
     alerts: activeUserAlerts,
     allAlerts: globalAlerts,
     activeAlertTrigger,
     clearAlertTrigger: () => setActiveAlertTrigger(null),
     campusOccupancyPercentage,
-    totalAvailableSeats: totalCapacity - totalOccupancy,
+    totalAvailableSeats: Math.max(0, totalCapacity - totalOccupancy),
     selectedLocation,
     setSelectedLocation,
     isFindModalOpen,

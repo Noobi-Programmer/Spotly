@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserPreferences, CampusLocation, RecommendationResult } from '@/types';
+import { UserPreferences, CampusLocation } from '@/types';
 import { rankSpaces } from '@/lib/engine/recommendation';
 import {
   X,
@@ -14,7 +14,9 @@ import {
   Navigation,
   ArrowRight,
   Check,
+  BookOpen,
 } from 'lucide-react';
+import { UserCoordinates } from '@/lib/utils/geolocation';
 
 interface FindSpaceModalProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ interface FindSpaceModalProps {
   locations: CampusLocation[];
   onApplyPreferences: (prefs: UserPreferences) => void;
   onSelectRecommendedLocation: (loc: CampusLocation) => void;
+  userCoordinates?: UserCoordinates | null;
 }
 
 export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
@@ -30,12 +33,15 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
   locations,
   onApplyPreferences,
   onSelectRecommendedLocation,
+  userCoordinates,
 }) => {
   const [preferences, setPreferences] = useState<UserPreferences>({
+    study: true,
     quiet: true,
     charging: true,
     wifi: true,
     low_crowd: true,
+    nearby: true,
     max_distance: 5,
     type: 'all',
   });
@@ -43,7 +49,7 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
   if (!isOpen) return null;
 
   // Run deterministic ranking in real-time
-  const ranked = rankSpaces(locations, preferences);
+  const ranked = rankSpaces(locations, preferences, userCoordinates);
   const topMatch = ranked[0];
 
   const handleApply = () => {
@@ -111,7 +117,7 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-100">Silent / Quiet Study</div>
-                  <div className="text-[11px] text-slate-400">Libraries, private booths, study nooks</div>
+                  <div className="text-[11px] text-slate-400">Reading rooms, private carrels, focus nooks</div>
                 </div>
               </button>
 
@@ -133,7 +139,7 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
                 </div>
                 <div>
                   <div className="text-xs font-bold text-slate-100">Collaborative / Lively</div>
-                  <div className="text-[11px] text-slate-400">Group pods, cafes, lounge spaces</div>
+                  <div className="text-[11px] text-slate-400">Group pods, cafeteria, innovation lounges</div>
                 </div>
               </button>
             </div>
@@ -270,11 +276,11 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
                 <div>
                   <h4 className="text-sm font-bold text-white">{topMatch.location.name}</h4>
                   <p className="text-[11px] text-slate-400">
-                    {topMatch.location.building} • {topMatch.location.distance_minutes} min walk
+                    {topMatch.location.building} • {topMatch.location.floor} • {topMatch.location.distance_minutes} min walk
                   </p>
                 </div>
                 <span className="text-xs font-semibold text-slate-300">
-                  {topMatch.location.capacity - topMatch.location.current_occupancy} seats open
+                  {topMatch.availableSeats} seats open
                 </span>
               </div>
 

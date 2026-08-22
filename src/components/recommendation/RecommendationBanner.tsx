@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { RecommendationResult, CampusLocation } from '@/types';
-import { Sparkles, Navigation, Bell, CheckCircle2, ChevronRight, Zap, VolumeX } from 'lucide-react';
+import { Sparkles, Navigation, Eye, CheckCircle2 } from 'lucide-react';
 import { OccupancyBadge } from '../spaces/OccupancyBadge';
 
 interface RecommendationBannerProps {
@@ -20,8 +20,9 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
 }) => {
   if (!recommendation) return null;
 
-  const { location, matchScore, reasons, occupancyPercentage } = recommendation;
-  const isCrowded = occupancyPercentage >= 75;
+  const { location, matchScore, reasons, occupancyPercentage, availableSeats, isAvailable } =
+    recommendation;
+  const isCrowded = !isAvailable || occupancyPercentage >= 71;
 
   return (
     <div className="relative rounded-3xl p-6 sm:p-7 bg-gradient-to-r from-emerald-950/70 via-slate-900/90 to-teal-950/70 border-2 border-emerald-500/50 shadow-2xl shadow-emerald-500/10 mb-8 overflow-hidden">
@@ -34,7 +35,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
           <div className="flex items-center gap-2.5 mb-2.5">
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold tracking-wide">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              RECOMMENDED FOR YOU RIGHT NOW
+              TOP RECOMMENDATION FOR YOU RIGHT NOW
             </span>
             <span className="text-xs font-black text-emerald-400 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/40">
               {matchScore}% Match
@@ -52,7 +53,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
             {location.description}
           </p>
 
-          {/* Explainability Breakdown: "Why this space?" */}
+          {/* Explainability Breakdown: "Why Spotly recommends this spot:" */}
           <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-emerald-500/25 mb-4">
             <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -106,8 +107,8 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
                 onClick={() => onNotify(location)}
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95"
               >
-                <Bell className="w-4 h-4" />
-                <span>Notify Me When Below 50%</span>
+                <Eye className="w-4 h-4" />
+                <span>Watch This Space</span>
               </button>
             ) : (
               <button
@@ -123,7 +124,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
               onClick={onOpenFinder}
               className="w-full text-center text-xs text-slate-400 hover:text-slate-200 py-1 transition-colors"
             >
-              Adjust my study preferences →
+              Adjust study preferences →
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { CampusLocation, CampusId } from '@/types';
-import { getCrowdColor, getCrowdStatus } from '@/lib/engine/recommendation';
+import { getCrowdColor } from '@/lib/engine/recommendation';
 import { Layers, Sparkles, Navigation, VolumeX, Zap } from 'lucide-react';
 
 interface CampusMapProps {

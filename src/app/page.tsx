@@ -5,6 +5,7 @@ import { useCampusStore } from '@/lib/store/useCampusStore';
 import { rankSpaces } from '@/lib/engine/recommendation';
 import { CampusLocation, SpaceType } from '@/types';
 import { Header } from '@/components/layout/Header';
+import { LocationPermissionBanner } from '@/components/layout/LocationPermissionBanner';
 import { SpaceFilters } from '@/components/spaces/SpaceFilters';
 import { SpaceGrid } from '@/components/spaces/SpaceGrid';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
@@ -15,7 +16,7 @@ import { NotifyModal } from '@/components/alerts/NotifyModal';
 import { ActiveAlertsDrawer } from '@/components/alerts/ActiveAlertsDrawer';
 import { AlertToast } from '@/components/alerts/AlertToast';
 import { SimulatorControlTray } from '@/components/simulator/SimulatorControlTray';
-import { Sparkles, Shield, Cpu, RefreshCw, Github } from 'lucide-react';
+import { Shield, Cpu, Sparkles } from 'lucide-react';
 
 export default function CampusSpaceApp() {
   const {
@@ -25,6 +26,7 @@ export default function CampusSpaceApp() {
     setSelectedCampus,
     selectedFloor,
     setSelectedFloor,
+    userCoordinates,
     alerts,
     activeAlertTrigger,
     clearAlertTrigger,
@@ -62,10 +64,10 @@ export default function CampusSpaceApp() {
     return Array.from(new Set(currentCampusLocations.map((l) => l.floor)));
   }, [currentCampusLocations]);
 
-  // Compute top recommendation within active campus
+  // Compute top recommendation within active campus using live coordinates
   const rankedSpaces = useMemo(() => {
-    return rankSpaces(currentCampusLocations, userPreferences);
-  }, [currentCampusLocations, userPreferences]);
+    return rankSpaces(currentCampusLocations, userPreferences, userCoordinates);
+  }, [currentCampusLocations, userPreferences, userCoordinates]);
 
   const topRecommendation = rankedSpaces.length > 0 ? rankedSpaces[0] : null;
 
@@ -135,10 +137,12 @@ export default function CampusSpaceApp() {
     setFilterChargingOnly(false);
     setSpaciousOnly(false);
     setUserPreferences({
+      study: true,
       quiet: false,
       charging: false,
       wifi: false,
       low_crowd: false,
+      nearby: false,
       type: 'all',
       floor: 'all',
     });
@@ -153,6 +157,9 @@ export default function CampusSpaceApp() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Geolocation Permission Banner */}
+        <LocationPermissionBanner />
+
         {/* Hero Recommendation Banner */}
         <RecommendationBanner
           recommendation={topRecommendation}
@@ -188,6 +195,7 @@ export default function CampusSpaceApp() {
             onNotify={handleOpenNotify}
             highlightedId={topRecommendation?.location.id}
             onResetFilters={handleResetFilters}
+            userCoordinates={userCoordinates}
           />
         ) : (
           <CampusMap
@@ -207,6 +215,7 @@ export default function CampusSpaceApp() {
         locations={currentCampusLocations}
         onApplyPreferences={(prefs) => setUserPreferences(prefs)}
         onSelectRecommendedLocation={(loc) => setSelectedLocation(loc)}
+        userCoordinates={userCoordinates}
       />
 
       {/* 2. Space Detail Modal */}
@@ -216,7 +225,7 @@ export default function CampusSpaceApp() {
         onNotify={handleOpenNotify}
       />
 
-      {/* 3. Notify Me Threshold Modal */}
+      {/* 3. Watch This Space Threshold Modal */}
       <NotifyModal
         location={targetNotifyLocation}
         isOpen={isNotifyModalOpen}
@@ -229,7 +238,7 @@ export default function CampusSpaceApp() {
         }}
       />
 
-      {/* 4. Active Alerts Drawer */}
+      {/* 4. My Watches Drawer */}
       <ActiveAlertsDrawer
         isOpen={isActiveAlertsDrawerOpen}
         onClose={() => setIsActiveAlertsDrawerOpen(false)}

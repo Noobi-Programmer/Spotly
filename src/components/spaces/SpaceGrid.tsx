@@ -4,6 +4,7 @@ import React from 'react';
 import { CampusLocation } from '@/types';
 import { SpaceCard } from './SpaceCard';
 import { SearchX } from 'lucide-react';
+import { UserCoordinates } from '@/lib/utils/geolocation';
 
 interface SpaceGridProps {
   locations: CampusLocation[];
@@ -11,6 +12,7 @@ interface SpaceGridProps {
   onNotify: (location: CampusLocation) => void;
   highlightedId?: string | null;
   onResetFilters: () => void;
+  userCoordinates?: UserCoordinates | null;
 }
 
 export const SpaceGrid: React.FC<SpaceGridProps> = ({
@@ -19,6 +21,7 @@ export const SpaceGrid: React.FC<SpaceGridProps> = ({
   onNotify,
   highlightedId,
   onResetFilters,
+  userCoordinates,
 }) => {
   if (locations.length === 0) {
     return (
@@ -49,6 +52,7 @@ export const SpaceGrid: React.FC<SpaceGridProps> = ({
           onSelect={onSelect}
           onNotify={onNotify}
           highlighted={highlightedId === loc.id}
+          userCoordinates={userCoordinates}
         />
       ))}
     </div>

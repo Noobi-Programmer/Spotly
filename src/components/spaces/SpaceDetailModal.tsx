@@ -6,14 +6,14 @@ import { OccupancyBadge } from './OccupancyBadge';
 import {
   X,
   Navigation,
-  Bell,
+  Eye,
   Volume2,
   VolumeX,
   Zap,
   Wifi,
   Clock,
-  CheckCircle2,
   Share2,
+  ExternalLink,
 } from 'lucide-react';
 
 interface SpaceDetailModalProps {
@@ -29,8 +29,11 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
 }) => {
   if (!location) return null;
 
-  const percentage = Math.round((location.current_occupancy / Math.max(1, location.capacity)) * 100);
+  const percentage = Math.round(
+    (location.current_occupancy / Math.max(1, location.capacity)) * 100
+  );
   const availableSeats = Math.max(0, location.capacity - location.current_occupancy);
+  const isFull = location.current_occupancy >= location.capacity;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -70,7 +73,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
         <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/90 mb-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Live Occupancy Telemetry
+              Current Space Telemetry
             </span>
             <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -103,7 +106,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
         {/* Amenities Grid */}
         <div className="mb-6">
           <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-            Space Amenities & Environment
+            Facilities &amp; Environment
           </h4>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
@@ -144,7 +147,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
             <span className="flex items-center gap-1 font-medium">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
-              Typical Daily Occupancy Pattern
+              Estimated Peak Hours
             </span>
             <span className="text-[11px] text-slate-400">Peak: 1:00 PM - 4:00 PM</span>
           </div>
@@ -177,8 +180,19 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
             }}
             className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-sm shadow-md transition-all active:scale-95"
           >
-            <Bell className="w-4 h-4" />
-            <span>Set Availability Alert</span>
+            <Eye className="w-4 h-4" />
+            <span>Watch This Space</span>
+          </button>
+
+          <button
+            onClick={() => {
+              const query = encodeURIComponent(`${location.name} ${location.building} Bangalore`);
+              window.open(`https://maps.google.com/?q=${location.latitude},${location.longitude}`, '_blank');
+            }}
+            className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+            title="Open in Maps"
+          >
+            <Navigation className="w-4 h-4" />
           </button>
 
           <button
@@ -186,7 +200,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
               navigator.clipboard?.writeText?.(
                 `${location.name} in ${location.building}, ${location.floor}`
               );
-              alert('Directions copied to clipboard!');
+              alert('Location info copied to clipboard!');
             }}
             className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
             title="Share or Copy Location"
