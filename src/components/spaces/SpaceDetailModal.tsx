@@ -25,6 +25,7 @@ import {
   Salad,
   Flame,
   Leaf,
+  Trophy,
 } from 'lucide-react';
 
 interface SpaceDetailModalProps {
@@ -46,6 +47,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
 
   if (!location) return null;
 
+  const isSports = location.category === 'sports';
   const percentage = Math.round(
     (location.current_occupancy / Math.max(1, location.capacity)) * 100
   );
@@ -63,7 +65,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 rounded-full bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer border border-primary-container/40"
         >
           <X className="w-4 h-4" />
         </button>
@@ -87,21 +89,40 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
           {location.name}
         </h2>
 
-        {/* Tables & Seats Summary Pill */}
-        <div className="flex items-center gap-3 text-xs text-on-surface-variant mb-4 font-inter">
-          <span className="flex items-center gap-1">
-            <Armchair className="w-4 h-4 text-tertiary" />
-            <strong>{location.table_count || 10}</strong> Tables
-          </span>
-          <span>•</span>
-          <span>
-            <strong>{location.capacity}</strong> Total Seats
-          </span>
-          <span>•</span>
-          <span className="text-primary font-bold">
-            {availableSeats} Free Seats
-          </span>
-        </div>
+        {/* Summary Pill: Sports Facility vs Tables & Seats */}
+        {isSports ? (
+          <div className="flex items-center gap-3 text-xs text-on-surface-variant mb-4 font-inter">
+            <span className="flex items-center gap-1 text-secondary font-bold font-sora">
+              <Trophy className="w-4 h-4 text-secondary" />
+              Sports Court &amp; Pitch
+            </span>
+            <span>•</span>
+            <span>
+              Players Active: <strong>{location.current_occupancy} / {location.capacity}</strong>
+            </span>
+            <span>•</span>
+            <span className="text-secondary font-bold">
+              {location.equipment_items && location.equipment_items.length > 0
+                ? `${location.equipment_items[0].available} ${location.equipment_items[0].name.toLowerCase()} available`
+                : 'Gear locker open'}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 text-xs text-on-surface-variant mb-4 font-inter">
+            <span className="flex items-center gap-1">
+              <Armchair className="w-4 h-4 text-tertiary" />
+              <strong>{location.table_count || 10}</strong> Tables
+            </span>
+            <span>•</span>
+            <span>
+              <strong>{location.capacity}</strong> Total Seats
+            </span>
+            <span>•</span>
+            <span className="text-primary font-bold">
+              {availableSeats} Free Seats
+            </span>
+          </div>
+        )}
 
         <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed mb-5">
           {location.description}
@@ -210,10 +231,10 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
 
         {/* Sports Gear Details */}
         {location.equipment_items && location.equipment_items.length > 0 && (
-          <div className="p-4 rounded-2xl bg-surface-container border border-primary-container mb-5">
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-2.5 flex items-center gap-1.5 font-sora">
+          <div className="p-4 rounded-2xl bg-surface-container border border-secondary-container/70 mb-5">
+            <div className="text-xs font-bold uppercase tracking-wider text-secondary mb-2.5 flex items-center gap-1.5 font-sora">
               <Dumbbell className="w-3.5 h-3.5" />
-              Available Gear for Checkout
+              Locker Gear Available for Checkout
             </div>
             <div className="grid grid-cols-2 gap-2">
               {location.equipment_items.map((item, idx) => (
@@ -222,7 +243,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
                   className="p-2.5 rounded-lg bg-surface-container-high border border-primary-container/60 flex items-center justify-between text-xs font-inter"
                 >
                   <span className="text-on-surface font-medium">{item.name}</span>
-                  <span className="font-bold text-primary font-mono">
+                  <span className="font-bold text-secondary font-mono">
                     {item.available} / {item.total} free
                   </span>
                 </div>
@@ -268,7 +289,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
 
         {/* Modal Footer Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-surface-variant">
-          {/* Pick & Book Seat Button (BookMyShow Style) */}
+          {/* Action CTA: Book Court / Gear vs Pick Seat */}
           <button
             onClick={() => {
               if (onBookSeat) onBookSeat(location);
@@ -276,8 +297,17 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
             }}
             className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs sm:text-sm shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
           >
-            <Armchair className="w-4 h-4" />
-            <span>Pick &amp; Book Seat</span>
+            {isSports ? (
+              <>
+                <Trophy className="w-4 h-4 text-on-tertiary" />
+                <span>Book Court Slot &amp; Claim Gear</span>
+              </>
+            ) : (
+              <>
+                <Armchair className="w-4 h-4" />
+                <span>Pick &amp; Book Seat</span>
+              </>
+            )}
           </button>
 
           {/* Watch This Space */}

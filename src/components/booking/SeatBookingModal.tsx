@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { SportsBookingModal } from './SportsBookingModal';
+
 interface SeatBookingModalProps {
   location: CampusLocation | null;
   isOpen: boolean;
@@ -32,6 +34,9 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  if (location?.category === 'sports') {
+    return <SportsBookingModal location={location} isOpen={isOpen} onClose={onClose} />;
+  }
   const [selectedSeat, setSelectedSeat] = useState<SeatInfo | null>(null);
   const [durationHours, setDurationHours] = useState<number>(2);
   const [activeBooking, setActiveBooking] = useState<SeatBooking | null>(null);

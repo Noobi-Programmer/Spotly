@@ -61,7 +61,9 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
     (location.current_occupancy / Math.max(1, location.capacity)) * 100
   );
   const isFull = location.current_occupancy >= location.capacity;
+  const isCrowded = isFull || percentage >= 71;
   const freeSeats = Math.max(0, location.capacity - location.current_occupancy);
+  const isSports = location.category === 'sports';
 
   // Calculate live proximity if user coordinates available
   let displayMinutes = location.distance_minutes;
@@ -139,29 +141,54 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           {location.name}
         </h3>
 
-        {/* Doomscroll Brain: Big Bold Tables & Seats Summary */}
-        <div className="flex items-center gap-2.5 text-xs text-on-surface-variant mb-3 font-inter bg-surface-container-lowest/60 p-2.5 rounded-xl border border-primary-container/40">
-          <span className="flex items-center gap-1 text-on-surface font-semibold font-sora">
-            <Armchair className="w-3.5 h-3.5 text-tertiary" />
-            {location.table_count || 10} Tables
-          </span>
-          <span className="text-outline">•</span>
-          <span className="font-sora font-semibold">
-            {location.capacity} Seats
-          </span>
-          <span className="text-outline">•</span>
-          <span
-            className={`font-sora font-bold px-2 py-0.5 rounded-md ${
-              freeSeats > 10
-                ? 'bg-primary-container/60 text-primary'
-                : freeSeats > 0
-                ? 'bg-tertiary-container/60 text-tertiary'
-                : 'bg-error-container/60 text-error'
-            }`}
-          >
-            {freeSeats} Free
-          </span>
-        </div>
+        {/* Logic Split: Sports Facility vs Study/Mess Tables & Seats */}
+        {isSports ? (
+          <div className="flex items-center gap-2.5 text-xs text-on-surface-variant mb-3 font-inter bg-surface-container-lowest/60 p-2.5 rounded-xl border border-secondary-container/40">
+            <span className="flex items-center gap-1 text-on-surface font-semibold font-sora">
+              <Trophy className="w-3.5 h-3.5 text-secondary" />
+              Court Facility
+            </span>
+            <span className="text-outline">•</span>
+            <span className="font-sora font-semibold">
+              {location.equipment_items && location.equipment_items.length > 0
+                ? `${location.equipment_items[0].available} ${location.equipment_items[0].name.toLowerCase()} free`
+                : 'Locker gear open'}
+            </span>
+            <span className="text-outline">•</span>
+            <span
+              className={`font-sora font-bold px-2 py-0.5 rounded-md ${
+                !isFull
+                  ? 'bg-secondary-container/60 text-secondary'
+                  : 'bg-error-container/60 text-error'
+              }`}
+            >
+              {!isFull ? 'Open for Play' : 'In Use'}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2.5 text-xs text-on-surface-variant mb-3 font-inter bg-surface-container-lowest/60 p-2.5 rounded-xl border border-primary-container/40">
+            <span className="flex items-center gap-1 text-on-surface font-semibold font-sora">
+              <Armchair className="w-3.5 h-3.5 text-tertiary" />
+              {location.table_count || 10} Tables
+            </span>
+            <span className="text-outline">•</span>
+            <span className="font-sora font-semibold">
+              {location.capacity} Seats
+            </span>
+            <span className="text-outline">•</span>
+            <span
+              className={`font-sora font-bold px-2 py-0.5 rounded-md ${
+                freeSeats > 10
+                  ? 'bg-primary-container/60 text-primary'
+                  : freeSeats > 0
+                  ? 'bg-tertiary-container/60 text-tertiary'
+                  : 'bg-error-container/60 text-error'
+              }`}
+            >
+              {freeSeats} Free
+            </span>
+          </div>
+        )}
 
         <p className="font-inter text-xs text-on-surface-variant line-clamp-2 mb-3.5 leading-relaxed">
           {location.description}
@@ -182,7 +209,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
               )}
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant font-sora block leading-none">
-                  {location.mess_provider === 'Cheftalk' ? 'CT • MESS COUNTER' : 'TCB • ALTERNATE MESS'}
+                  {location.mess_provider === 'Cheftalk' ? 'CT • PRIMARY MESS' : 'TCB • ALTERNATE MESS'}
                 </span>
                 <span className="font-sora text-xs font-bold text-on-surface">
                   {location.mess_provider}
@@ -223,14 +250,14 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
         )}
 
         {/* 🏀 Sports Gear Callout */}
-        {location.equipment_items && location.equipment_items.length > 0 && (
-          <div className="mb-3 px-3 py-1.5 rounded-xl bg-primary-container/30 border border-primary-container flex items-center justify-between text-xs text-primary">
+        {isSports && location.equipment_items && location.equipment_items.length > 0 && (
+          <div className="mb-3 px-3 py-1.5 rounded-xl bg-secondary-container/30 border border-secondary/50 flex items-center justify-between text-xs text-on-secondary-container">
             <span className="flex items-center gap-1 font-semibold font-sora">
-              <Trophy className="w-3.5 h-3.5 text-primary" />
-              Equipment Available
+              <Dumbbell className="w-3.5 h-3.5 text-secondary" />
+              Gear Locker
             </span>
             <span className="font-bold font-inter">
-              {location.equipment_items[0].available} {location.equipment_items[0].name.toLowerCase()} free
+              {location.equipment_items[0].available} {location.equipment_items[0].name.toLowerCase()} available
             </span>
           </div>
         )}
@@ -253,7 +280,7 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
         >
           <span className="flex items-center gap-1.5">
             <BarChart2 className="w-3.5 h-3.5 text-tertiary" />
-            <span>Hourly Traffic &amp; Rush Times</span>
+            <span>Hourly Rush &amp; Match Times</span>
           </span>
           {showHourlyTraffic ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
@@ -307,18 +334,26 @@ export const SpaceCard: React.FC<SpaceCardProps> = ({
           </span>
         </div>
 
-        {/* Action Buttons: Book Seat + Go Here / Watch */}
+        {/* Action Buttons: Book Seat/Court + Go Here / Watch */}
         <div className="grid grid-cols-2 gap-2.5 pt-3.5 border-t border-surface-variant">
           <button
             onClick={() => (onBookSeat ? onBookSeat(location) : onSelect(location))}
-            disabled={isFull}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-surface-container-high disabled:active:scale-100"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm"
           >
-            <Armchair className="w-3.5 h-3.5 text-tertiary" />
-            <span>{isFull ? 'No seats left' : 'Book Seat'}</span>
+            {isSports ? (
+              <>
+                <Trophy className="w-3.5 h-3.5 text-secondary" />
+                <span>Book Court / Gear</span>
+              </>
+            ) : (
+              <>
+                <Armchair className="w-3.5 h-3.5 text-tertiary" />
+                <span>{isFull ? 'No seats left' : 'Book Seat'}</span>
+              </>
+            )}
           </button>
 
-          {isFull ? (
+          {isCrowded && !isSports ? (
             <button
               onClick={() => onNotify(location)}
               className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-surface-container-highest hover:bg-surface-bright text-on-surface border border-outline-variant text-xs font-sora font-bold shadow-sm transition-all active:scale-95 cursor-pointer"

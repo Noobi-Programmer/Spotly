@@ -366,7 +366,7 @@ export default function CampusSpaceApp() {
 
           <div className="flex flex-wrap items-center gap-4 text-on-surface-variant font-inter">
             <span className="flex items-center gap-1.5 text-primary font-sora font-semibold">
-              ✨ Team Sparkle
+              ✨ Team Spark (Abinivesh • Khwahish • Urmi)
             </span>
             <span>•</span>
             <span>Scaler School of Technology • Gradient Rush</span>

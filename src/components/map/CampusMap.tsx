@@ -5,7 +5,7 @@ import { CampusLocation, CampusId } from '@/types';
 import { SST_FLOOR_ORDER } from '@/lib/supabase/seed-data';
 import { getCrowdColor } from '@/lib/engine/recommendation';
 import { OccupancyBadge } from '../spaces/OccupancyBadge';
-import { Sparkles, Armchair } from 'lucide-react';
+import { Sparkles, Armchair, Trophy } from 'lucide-react';
 
 interface CampusMapProps {
   locations: CampusLocation[];
@@ -235,6 +235,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             );
             const isRecommended = recommendedLocationId === loc.id;
             const colors = getCrowdColor(pct);
+            const isSports = loc.category === 'sports';
 
             const nodeX = loc.renderX;
             const nodeY = loc.renderY;
@@ -282,7 +283,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   height={loc.cardH}
                   rx="12"
                   fill="#19220e"
-                  stroke={isRecommended ? '#c5cc7b' : '#31572c'}
+                  stroke={isRecommended ? '#c5cc7b' : isSports ? '#454b05' : '#31572c'}
                   strokeWidth={isRecommended ? '2.5' : '1.5'}
                   className="transition-all hover:fill-[#232d18]"
                 />
@@ -310,7 +311,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   {loc.name.length > 18 ? loc.name.substring(0, 16) + '…' : loc.name}
                 </text>
 
-                {/* Table and Seat Info */}
+                {/* Table/Seat or Court/Gear Info */}
                 <text
                   x={nodeX}
                   y={nodeY + (mapFloor === 'all' ? 6 : 4)}
@@ -319,8 +320,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   fontSize={mapFloor === 'all' ? '8.5' : '9.5'}
                   fontFamily="Inter"
                 >
-                  {loc.table_count ? `${loc.table_count}T • ` : ''}
-                  {loc.capacity} Seats
+                  {isSports
+                    ? loc.equipment_items && loc.equipment_items.length > 0
+                      ? `${loc.equipment_items[0].available} ${loc.equipment_items[0].name.split(' ')[0]} Free`
+                      : 'Court Open'
+                    : `${loc.table_count ? `${loc.table_count}T • ` : ''}${loc.capacity} Seats`}
                 </text>
 
                 {/* Live Occupancy Metric */}
@@ -333,7 +337,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   fontWeight="bold"
                   fontFamily="Sora"
                 >
-                  {pct}% ({Math.max(0, loc.capacity - loc.current_occupancy)} free)
+                  {pct}% ({isSports ? `${Math.max(0, loc.capacity - loc.current_occupancy)} free` : `${Math.max(0, loc.capacity - loc.current_occupancy)} free`})
                 </text>
               </g>
             );
@@ -355,9 +359,11 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               {hoveredLoc.name}
             </h4>
             <div className="flex items-center gap-2 text-[11px] text-on-surface-variant font-inter mb-1.5">
-              <span>{hoveredLoc.table_count || 10} Tables</span>
-              <span>•</span>
-              <span>{hoveredLoc.capacity} Seats ({Math.max(0, hoveredLoc.capacity - hoveredLoc.current_occupancy)} Free)</span>
+              {hoveredLoc.category === 'sports' ? (
+                <span>Sports Court • {hoveredLoc.equipment_items ? hoveredLoc.equipment_items[0].available : 2} gear free</span>
+              ) : (
+                <span>{hoveredLoc.table_count || 10} Tables • {hoveredLoc.capacity} Seats</span>
+              )}
             </div>
             <p className="font-inter text-xs text-on-surface-variant line-clamp-2 mb-2">
               {hoveredLoc.description}
@@ -400,6 +406,8 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {filteredList.map((loc) => {
             const isRec = recommendedLocationId === loc.id;
+            const isSports = loc.category === 'sports';
+
             return (
               <div
                 key={loc.id}
@@ -419,10 +427,19 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                       {loc.name}
                     </h5>
                     <div className="flex items-center gap-1.5 text-[11px] text-on-surface-variant font-inter mt-0.5">
-                      <Armchair className="w-3 h-3 text-tertiary" />
-                      <span>{loc.table_count || 10} Tables</span>
-                      <span>•</span>
-                      <span>{loc.capacity} Seats ({Math.max(0, loc.capacity - loc.current_occupancy)} free)</span>
+                      {isSports ? (
+                        <>
+                          <Trophy className="w-3 h-3 text-secondary" />
+                          <span>Court Facility • {loc.equipment_items ? `${loc.equipment_items[0].available} gear free` : 'Open'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Armchair className="w-3 h-3 text-tertiary" />
+                          <span>{loc.table_count || 10} Tables</span>
+                          <span>•</span>
+                          <span>{loc.capacity} Seats ({Math.max(0, loc.capacity - loc.current_occupancy)} free)</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
