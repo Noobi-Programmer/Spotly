@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
 import { rankSpaces } from '@/lib/engine/recommendation';
-import { CampusLocation, SpaceType } from '@/types';
+import { CampusLocation } from '@/types';
 import { Header } from '@/components/layout/Header';
 import { LandingPageSection } from '@/components/landing/LandingPageSection';
 import { LocationPermissionBanner } from '@/components/layout/LocationPermissionBanner';
@@ -17,14 +17,13 @@ import { NotifyModal } from '@/components/alerts/NotifyModal';
 import { ActiveAlertsDrawer } from '@/components/alerts/ActiveAlertsDrawer';
 import { AlertToast } from '@/components/alerts/AlertToast';
 import { SimulatorControlTray } from '@/components/simulator/SimulatorControlTray';
-import { Shield, Cpu, Sparkles } from 'lucide-react';
+import { Shield, Cpu, ArrowLeft } from 'lucide-react';
 
 export default function CampusSpaceApp() {
   const {
     locations,
     currentCampusLocations,
     selectedCampus,
-    setSelectedCampus,
     selectedCategory,
     setSelectedCategory,
     selectedFloor,
@@ -60,7 +59,8 @@ export default function CampusSpaceApp() {
     runPresetScenario,
   } = useCampusStore();
 
-  const [showLanding, setShowLanding] = useState(false);
+  // DEFAULT TO LANDING PAGE (STITCH 1:1 EXPERIENCE)
+  const [showLanding, setShowLanding] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [spaciousOnly, setSpaciousOnly] = useState(false);
   const [isActiveAlertsDrawerOpen, setIsActiveAlertsDrawerOpen] = useState(false);
@@ -159,8 +159,8 @@ export default function CampusSpaceApp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-slate-950">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary">
+      {/* Top Navigation Bar */}
       <Header
         onOpenActiveAlerts={() => setIsActiveAlertsDrawerOpen(true)}
         showLanding={showLanding}
@@ -168,7 +168,7 @@ export default function CampusSpaceApp() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-6 sm:py-10">
         {showLanding ? (
           <LandingPageSection
             onEnterApp={() => setShowLanding(false)}
@@ -177,6 +177,20 @@ export default function CampusSpaceApp() {
           />
         ) : (
           <>
+            {/* Back to Overview Banner */}
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-surface-variant">
+              <button
+                onClick={() => setShowLanding(true)}
+                className="flex items-center gap-1.5 text-xs font-sora font-semibold text-primary hover:text-tertiary transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Overview Landing</span>
+              </button>
+              <div className="text-xs text-on-surface-variant font-inter">
+                Live Interactive Mode • {currentCampusLocations.length} Campus Spaces Monitored
+              </div>
+            </div>
+
             {/* Geolocation Permission Banner */}
             <LocationPermissionBanner />
 
@@ -238,7 +252,10 @@ export default function CampusSpaceApp() {
         onClose={() => setIsFindModalOpen(false)}
         locations={currentCampusLocations}
         onApplyPreferences={(prefs) => setUserPreferences(prefs)}
-        onSelectRecommendedLocation={(loc) => setSelectedLocation(loc)}
+        onSelectRecommendedLocation={(loc) => {
+          setSelectedLocation(loc);
+          setShowLanding(false);
+        }}
         userCoordinates={userCoordinates}
       />
 
@@ -270,14 +287,20 @@ export default function CampusSpaceApp() {
         alerts={alerts}
         locations={locations}
         onRemoveAlert={removeAlert}
-        onSelectLocation={(loc) => setSelectedLocation(loc)}
+        onSelectLocation={(loc) => {
+          setSelectedLocation(loc);
+          setShowLanding(false);
+        }}
       />
 
       {/* 5. Triggered Alert Hero Toast (confetti + audio chime) */}
       <AlertToast
         data={activeAlertTrigger}
         onDismiss={clearAlertTrigger}
-        onGoToSpace={(loc) => setSelectedLocation(loc)}
+        onGoToSpace={(loc) => {
+          setSelectedLocation(loc);
+          setShowLanding(false);
+        }}
       />
 
       {/* 6. Admin / Demo Simulator Control Tray */}
@@ -289,32 +312,31 @@ export default function CampusSpaceApp() {
         onRunPreset={runPresetScenario}
       />
 
-      {/* Footer */}
-      <footer className="w-full border-t border-slate-800/80 bg-slate-950/90 py-8 px-4 sm:px-6 lg:px-8 mt-16 text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      {/* Footer matching Stitch Layout */}
+      <footer className="w-full border-t border-primary-container bg-surface-container-low py-10 px-4 sm:px-8 lg:px-12 mt-16 text-xs text-on-surface-variant font-inter">
+        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm">
+            <div className="w-8 h-8 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-sm">
               S
             </div>
             <div>
-              <span className="font-bold text-slate-200">Spotly</span> — Realtime Campus Decision Engine
+              <span className="font-sora font-bold text-on-surface text-sm">Spotly</span>
+              <p className="text-[11px] text-on-surface-variant">Don&apos;t wait. Don&apos;t wander. Just know.</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-slate-400">
-            <span className="flex items-center gap-1.5 text-emerald-400">
+          <div className="flex flex-wrap items-center gap-6 text-on-surface-variant">
+            <span className="flex items-center gap-1.5 text-primary">
               <Shield className="w-3.5 h-3.5" />
-              Zero-PII Privacy Guaranteed
+              Privacy-First Architecture
             </span>
             <span>•</span>
-            <span className="flex items-center gap-1.5 text-cyan-400">
+            <span className="flex items-center gap-1.5 text-tertiary">
               <Cpu className="w-3.5 h-3.5" />
-              Deterministic Scoring (&lt;2ms)
+              &lt;2ms Real-Time Matching
             </span>
             <span>•</span>
-            <span className="text-slate-400">
-              Built for 13h Hackathon • Scaler School of Technology
-            </span>
+            <span>Scaler School of Technology • Gradient Rush</span>
           </div>
         </div>
       </footer>
