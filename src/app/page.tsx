@@ -5,6 +5,7 @@ import { useCampusStore } from '@/lib/store/useCampusStore';
 import { rankSpaces } from '@/lib/engine/recommendation';
 import { CampusLocation, SpaceType } from '@/types';
 import { Header } from '@/components/layout/Header';
+import { LandingPageSection } from '@/components/landing/LandingPageSection';
 import { LocationPermissionBanner } from '@/components/layout/LocationPermissionBanner';
 import { SpaceFilters } from '@/components/spaces/SpaceFilters';
 import { SpaceGrid } from '@/components/spaces/SpaceGrid';
@@ -30,6 +31,8 @@ export default function CampusSpaceApp() {
     alerts,
     activeAlertTrigger,
     clearAlertTrigger,
+    campusOccupancyPercentage,
+    totalAvailableSeats,
     selectedLocation,
     setSelectedLocation,
     isFindModalOpen,
@@ -54,6 +57,7 @@ export default function CampusSpaceApp() {
     runPresetScenario,
   } = useCampusStore();
 
+  const [showLanding, setShowLanding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [spaciousOnly, setSpaciousOnly] = useState(false);
   const [isActiveAlertsDrawerOpen, setIsActiveAlertsDrawerOpen] = useState(false);
@@ -153,57 +157,69 @@ export default function CampusSpaceApp() {
       {/* Header */}
       <Header
         onOpenActiveAlerts={() => setIsActiveAlertsDrawerOpen(true)}
+        showLanding={showLanding}
+        onToggleLanding={() => setShowLanding(!showLanding)}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Geolocation Permission Banner */}
-        <LocationPermissionBanner />
-
-        {/* Hero Recommendation Banner */}
-        <RecommendationBanner
-          recommendation={topRecommendation}
-          onSelect={(loc) => setSelectedLocation(loc)}
-          onNotify={handleOpenNotify}
-          onOpenFinder={() => setIsFindModalOpen(true)}
-        />
-
-        {/* Filters and View Switcher */}
-        <SpaceFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedType={filterType}
-          onTypeChange={setFilterType}
-          selectedFloor={selectedFloor}
-          onFloorChange={setSelectedFloor}
-          quietOnly={filterQuietOnly}
-          onQuietToggle={setFilterQuietOnly}
-          chargingOnly={filterChargingOnly}
-          onChargingToggle={setFilterChargingOnly}
-          spaciousOnly={spaciousOnly}
-          onSpaciousToggle={setSpaciousOnly}
-          activeView={activeTab}
-          onViewChange={setActiveTab}
-          availableFloors={availableFloors}
-        />
-
-        {/* Content View: Cards vs Map */}
-        {activeTab === 'cards' ? (
-          <SpaceGrid
-            locations={filteredLocations}
-            onSelect={(loc) => setSelectedLocation(loc)}
-            onNotify={handleOpenNotify}
-            highlightedId={topRecommendation?.location.id}
-            onResetFilters={handleResetFilters}
-            userCoordinates={userCoordinates}
+        {showLanding ? (
+          <LandingPageSection
+            onEnterApp={() => setShowLanding(false)}
+            campusOccupancyPercentage={campusOccupancyPercentage}
+            totalAvailableSeats={totalAvailableSeats}
           />
         ) : (
-          <CampusMap
-            locations={currentCampusLocations}
-            selectedCampus={selectedCampus}
-            onSelectLocation={(loc) => setSelectedLocation(loc)}
-            recommendedLocationId={topRecommendation?.location.id}
-          />
+          <>
+            {/* Geolocation Permission Banner */}
+            <LocationPermissionBanner />
+
+            {/* Hero Recommendation Banner */}
+            <RecommendationBanner
+              recommendation={topRecommendation}
+              onSelect={(loc) => setSelectedLocation(loc)}
+              onNotify={handleOpenNotify}
+              onOpenFinder={() => setIsFindModalOpen(true)}
+            />
+
+            {/* Filters and View Switcher */}
+            <SpaceFilters
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedType={filterType}
+              onTypeChange={setFilterType}
+              selectedFloor={selectedFloor}
+              onFloorChange={setSelectedFloor}
+              quietOnly={filterQuietOnly}
+              onQuietToggle={setFilterQuietOnly}
+              chargingOnly={filterChargingOnly}
+              onChargingToggle={setFilterChargingOnly}
+              spaciousOnly={spaciousOnly}
+              onSpaciousToggle={setSpaciousOnly}
+              activeView={activeTab}
+              onViewChange={setActiveTab}
+              availableFloors={availableFloors}
+            />
+
+            {/* Content View: Cards vs Map */}
+            {activeTab === 'cards' ? (
+              <SpaceGrid
+                locations={filteredLocations}
+                onSelect={(loc) => setSelectedLocation(loc)}
+                onNotify={handleOpenNotify}
+                highlightedId={topRecommendation?.location.id}
+                onResetFilters={handleResetFilters}
+                userCoordinates={userCoordinates}
+              />
+            ) : (
+              <CampusMap
+                locations={currentCampusLocations}
+                selectedCampus={selectedCampus}
+                onSelectLocation={(loc) => setSelectedLocation(loc)}
+                recommendedLocationId={topRecommendation?.location.id}
+              />
+            )}
+          </>
         )}
       </main>
 

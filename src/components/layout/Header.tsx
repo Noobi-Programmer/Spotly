@@ -3,13 +3,19 @@
 import React from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
 import { CampusId } from '@/types';
-import { Sparkles, Bell, Sliders, MapPin, Building2 } from 'lucide-react';
+import { Sparkles, Bell, Sliders, Layout, Compass } from 'lucide-react';
 
 interface HeaderProps {
   onOpenActiveAlerts: () => void;
+  showLanding?: boolean;
+  onToggleLanding?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenActiveAlerts }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onOpenActiveAlerts,
+  showLanding = false,
+  onToggleLanding,
+}) => {
   const {
     campusOccupancyPercentage,
     totalAvailableSeats,
@@ -77,7 +83,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenActiveAlerts }) => {
         </div>
 
         {/* Right CTA Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          {/* Landing / App Mode Toggle */}
+          {onToggleLanding && (
+            <button
+              onClick={onToggleLanding}
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                showLanding
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-800'
+              }`}
+              title="Toggle Overview / Live App"
+            >
+              {showLanding ? <Compass className="w-3.5 h-3.5 text-emerald-400" /> : <Layout className="w-3.5 h-3.5 text-slate-400" />}
+              <span>{showLanding ? 'Live Spaces' : 'Overview'}</span>
+            </button>
+          )}
+
           {/* Find My Space Hero Button */}
           <button
             onClick={() => setIsFindModalOpen(true)}
@@ -91,8 +113,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenActiveAlerts }) => {
           <button
             onClick={onOpenActiveAlerts}
             className="relative p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
-            title="Active Space Alerts"
-            aria-label="Active Space Alerts"
+            title="My Watches"
+            aria-label="My Watches"
           >
             <Bell className="w-4 h-4" />
             {activeAlertCount > 0 && (
