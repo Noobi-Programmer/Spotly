@@ -146,7 +146,7 @@ export const SpaceDetailModal: React.FC<SpaceDetailModalProps> = ({
               Live Crowd Telemetry
             </span>
             <span className="text-xs font-semibold text-primary flex items-center gap-1 font-inter">
-              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-primary inline-block" />
               Live Stream
             </span>
           </div>

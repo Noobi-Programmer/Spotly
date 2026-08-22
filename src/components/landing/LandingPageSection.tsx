@@ -75,10 +75,7 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
 
           {/* Live Campus Telemetry Pill */}
           <div className="flex items-center gap-3 pt-2 text-xs text-on-surface-variant font-inter">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
+            <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
             <span>
               SST Campus Pulse: <strong className="text-primary font-sora font-bold">{campusOccupancyPercentage}% occupied</strong>
             </span>
