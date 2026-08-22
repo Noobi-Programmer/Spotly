@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SpaceType, CampusResourceCategory } from '@/types';
-import { Search, VolumeX, Zap, LayoutGrid, Map as MapIcon, Sparkles, Layers, BookOpen, Utensils, Dumbbell } from 'lucide-react';
+import { Search, VolumeX, Zap, LayoutGrid, Map as MapIcon, BookOpen, Utensils, Dumbbell } from 'lucide-react';
 
 interface SpaceFiltersProps {
   searchQuery: string;
@@ -51,59 +51,59 @@ export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
   ];
 
   return (
-    <div className="flex flex-col gap-3.5 mb-6">
-      {/* Top Bar: Search + View Switcher */}
+    <div className="flex flex-col gap-4 mb-8">
+      {/* Top Row: Search + View Switcher */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Search Bar */}
+        {/* Search Input */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-outline" />
           <input
             type="text"
-            placeholder="Search SST Innovation Lab, Coding Pods, Chef Talk, Turf..."
+            placeholder="Search rooms, innovation lab, coding pods, chef talk, turf..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/50 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface-container-high border border-primary-container text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-tertiary transition-all font-inter"
           />
         </div>
 
         {/* View Switcher: Cards vs Map */}
-        <div className="flex items-center p-1 rounded-xl bg-slate-900/90 border border-slate-800 self-start sm:self-auto">
+        <div className="flex items-center p-1 rounded-xl bg-surface-container-high border border-primary-container self-start sm:self-auto">
           <button
             onClick={() => onViewChange('cards')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-sora font-semibold transition-all cursor-pointer ${
               activeView === 'cards'
-                ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-tertiary text-on-tertiary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
             <LayoutGrid className="w-3.5 h-3.5" />
-            <span>Cards</span>
+            <span>Spaces Grid</span>
           </button>
 
           <button
             onClick={() => onViewChange('map')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-sora font-semibold transition-all cursor-pointer ${
               activeView === 'map'
-                ? 'bg-emerald-500 text-slate-950 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-tertiary text-on-tertiary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface'
             }`}
           >
             <MapIcon className="w-3.5 h-3.5" />
-            <span>Campus Map</span>
+            <span>Floor Radar</span>
           </button>
         </div>
       </div>
 
-      {/* Purpose Resource Category Pills (P2 Extension: Study / Food / Sports) */}
+      {/* Purpose Resource Category Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
         {resourceCategories.map((cat) => (
           <button
             key={cat.value}
             onClick={() => onCategoryChange(cat.value)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+            className={`px-4 py-2 rounded-xl text-xs font-sora font-bold transition-all whitespace-nowrap cursor-pointer ${
               selectedCategory === cat.value
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20'
-                : 'bg-slate-900/80 text-slate-300 hover:text-white border-slate-800 hover:border-slate-700'
+                ? 'bg-primary-container text-primary border border-primary shadow-sm'
+                : 'bg-surface-container text-on-surface-variant hover:text-on-surface border border-primary-container/60'
             }`}
           >
             {cat.label}
@@ -111,74 +111,76 @@ export const SpaceFilters: React.FC<SpaceFiltersProps> = ({
         ))}
       </div>
 
-      {/* Floor-by-Floor Selector Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full no-scrollbar">
-        <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1 pr-2 shrink-0">
-          <Layers className="w-3.5 h-3.5 text-emerald-400" />
-          Floor:
-        </span>
+      {/* Secondary Filter Chips Row */}
+      <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-inter">
+        {/* Floor Switcher */}
+        <select
+          value={selectedFloor}
+          onChange={(e) => onFloorChange(e.target.value)}
+          aria-label="Filter by Campus Floor"
+          className="bg-surface-container-high border border-primary-container rounded-lg px-3 py-1.5 text-xs text-on-surface focus:outline-none focus:border-tertiary cursor-pointer font-sora font-semibold"
+        >
+          <option value="all">All Floors</option>
+          {availableFloors.map((fl) => (
+            <option key={fl} value={fl}>
+              {fl}
+            </option>
+          ))}
+        </select>
+
+        {/* Space Type */}
+        <select
+          value={selectedType}
+          onChange={(e) => onTypeChange(e.target.value as SpaceType | 'all')}
+          aria-label="Filter by Space Type"
+          className="bg-surface-container-high border border-primary-container rounded-lg px-3 py-1.5 text-xs text-on-surface focus:outline-none focus:border-tertiary cursor-pointer font-sora font-semibold"
+        >
+          <option value="all">All Space Types</option>
+          <option value="library">Library &amp; Silent</option>
+          <option value="study_room">Study &amp; Collab Pods</option>
+          <option value="lab">Tech &amp; AI Labs</option>
+          <option value="classroom">Amphitheaters</option>
+          <option value="food_counter">Food &amp; Cafeteria</option>
+          <option value="sports_court">Sports &amp; Turf</option>
+        </select>
+
+        {/* Silent Toggle */}
         <button
-          onClick={() => onFloorChange('all')}
-          className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
-            selectedFloor === 'all'
-              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
-              : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-slate-800'
+          onClick={() => onQuietToggle(!quietOnly)}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+            quietOnly
+              ? 'bg-tertiary text-on-tertiary border-tertiary shadow-sm'
+              : 'bg-surface-container-high text-on-surface-variant border-primary-container/70 hover:text-on-surface'
           }`}
         >
-          All Floors
+          <VolumeX className="w-3.5 h-3.5" />
+          <span>Silent Only</span>
         </button>
-        {availableFloors.map((floor) => (
-          <button
-            key={floor}
-            onClick={() => onFloorChange(floor)}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
-              selectedFloor === floor
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
-                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-slate-800'
-            }`}
-          >
-            {floor}
-          </button>
-        ))}
 
-        {/* Quick Toggles */}
-        <div className="ml-auto flex items-center gap-2 pl-3 shrink-0">
-          <button
-            onClick={() => onQuietToggle(!quietOnly)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-              quietOnly
-                ? 'bg-blue-500/20 text-blue-300 border-blue-500/50'
-                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-300'
-            }`}
-          >
-            <VolumeX className="w-3 h-3" />
-            Quiet
-          </button>
+        {/* Charging Outlets Toggle */}
+        <button
+          onClick={() => onChargingToggle(!chargingOnly)}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+            chargingOnly
+              ? 'bg-tertiary text-on-tertiary border-tertiary shadow-sm'
+              : 'bg-surface-container-high text-on-surface-variant border-primary-container/70 hover:text-on-surface'
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5" />
+          <span>Power Outlets</span>
+        </button>
 
-          <button
-            onClick={() => onChargingToggle(!chargingOnly)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-              chargingOnly
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
-                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-300'
-            }`}
-          >
-            <Zap className="w-3 h-3" />
-            Outlets
-          </button>
-
-          <button
-            onClick={() => onSpaciousToggle(!spaciousOnly)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${
-              spaciousOnly
-                ? 'bg-teal-500/20 text-teal-300 border-teal-500/50'
-                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-300'
-            }`}
-          >
-            <Sparkles className="w-3 h-3" />
-            Spacious (&lt;50%)
-          </button>
-        </div>
+        {/* Spacious Toggle (<50% crowd) */}
+        <button
+          onClick={() => onSpaciousToggle(!spaciousOnly)}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+            spaciousOnly
+              ? 'bg-primary text-on-primary border-primary shadow-sm'
+              : 'bg-surface-container-high text-on-surface-variant border-primary-container/70 hover:text-on-surface'
+          }`}
+        >
+          <span>Spacious (&lt;50%)</span>
+        </button>
       </div>
     </div>
   );

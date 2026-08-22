@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { CampusLocation, CampusId } from '@/types';
 import { getCrowdColor } from '@/lib/engine/recommendation';
-import { Layers, Sparkles, Navigation, VolumeX, Zap } from 'lucide-react';
+import { OccupancyBadge } from '../spaces/OccupancyBadge';
+import { Layers, Navigation, VolumeX, Volume2, Zap, Wifi, Eye, Sparkles } from 'lucide-react';
 
 interface CampusMapProps {
   locations: CampusLocation[];
@@ -19,23 +20,24 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   recommendedLocationId,
 }) => {
   const [hoveredLoc, setHoveredLoc] = useState<CampusLocation | null>(null);
-  const [mapFloor, setMapFloor] = useState<string>('all');
+  // Default to Floor 2 for clean, pristine single-floor view
+  const [mapFloor, setMapFloor] = useState<string>('Floor 2');
 
-  // Dynamic nodes based on campus and floor
+  const availableFloors = Array.from(new Set(locations.map((l) => l.floor)));
+
+  // Dynamic nodes based on floor selection
   const filteredLocations = locations.filter((l) => {
     if (mapFloor !== 'all' && l.floor !== mapFloor) return false;
     return true;
   });
 
-  const availableFloors = Array.from(new Set(locations.map((l) => l.floor)));
-
   return (
-    <div className="rounded-2xl bg-surface-container-high border border-primary-container p-5 sm:p-7 relative overflow-hidden flex flex-col gap-4 shadow-xl">
+    <div className="rounded-2xl bg-surface-container-high border border-primary-container p-5 sm:p-7 relative overflow-hidden flex flex-col gap-6 shadow-xl">
       {/* Map Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-surface-variant pb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-surface-variant pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-sora text-base sm:text-lg font-bold text-on-surface tracking-tight">
+            <h3 className="font-sora text-lg sm:text-xl font-bold text-on-surface tracking-tight">
               {selectedCampus === 'sst_bangalore'
                 ? 'SST Bangalore Campus Floor Map'
                 : 'New 20-Acre Campus Master Plan Preview'}
@@ -44,31 +46,21 @@ export const CampusMap: React.FC<CampusMapProps> = ({
               LIVE TELEMETRY
             </span>
           </div>
-          <p className="text-xs text-on-surface-variant font-inter">
+          <p className="text-xs text-on-surface-variant font-inter mt-0.5">
             {selectedCampus === 'sst_bangalore'
               ? 'Electronic City Phase 1 • Select floor level to view room availability.'
               : 'Architectural multi-building master plan for the upcoming 20-acre tech campus.'}
           </p>
         </div>
 
-        {/* Floor selector tabs inside Map */}
+        {/* Floor selector tabs */}
         {selectedCampus === 'sst_bangalore' && (
-          <div className="flex items-center gap-1 bg-surface-container p-1 rounded-xl border border-primary-container/70 text-xs overflow-x-auto max-w-full no-scrollbar">
-            <button
-              onClick={() => setMapFloor('all')}
-              className={`px-2.5 py-1 rounded-lg font-sora font-semibold transition-all cursor-pointer ${
-                mapFloor === 'all'
-                  ? 'bg-tertiary text-on-tertiary shadow-sm'
-                  : 'text-on-surface-variant hover:text-on-surface'
-              }`}
-            >
-              All Floors
-            </button>
+          <div className="flex items-center gap-1.5 bg-surface-container p-1 rounded-xl border border-primary-container/70 text-xs overflow-x-auto max-w-full no-scrollbar">
             {availableFloors.map((floor) => (
               <button
                 key={floor}
                 onClick={() => setMapFloor(floor)}
-                className={`px-2.5 py-1 rounded-lg font-sora font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-sora font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   mapFloor === floor
                     ? 'bg-tertiary text-on-tertiary shadow-sm'
                     : 'text-on-surface-variant hover:text-on-surface'
@@ -77,42 +69,52 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 {floor}
               </button>
             ))}
+            <button
+              onClick={() => setMapFloor('all')}
+              className={`px-3 py-1.5 rounded-lg font-sora font-semibold transition-all cursor-pointer ${
+                mapFloor === 'all'
+                  ? 'bg-tertiary text-on-tertiary shadow-sm'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              All Floors
+            </button>
           </div>
         )}
       </div>
 
       {/* SVG Interactive Floorplan Container */}
-      <div className="relative w-full h-[450px] sm:h-[520px] rounded-xl bg-surface border border-primary-container/60 overflow-hidden">
+      <div className="relative w-full h-[400px] sm:h-[460px] rounded-xl bg-surface border border-primary-container/60 overflow-hidden">
         {/* SVG Floor Layout */}
         <svg
-          viewBox="0 0 1000 600"
+          viewBox="0 0 1000 560"
           className="w-full h-full object-cover select-none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Subtle Grid Lines */}
+          {/* Subtle Grid Pattern */}
           <defs>
             <pattern
-              id="campus-grid"
-              width="40"
-              height="40"
+              id="campus-grid-pattern"
+              width="36"
+              height="36"
               patternUnits="userSpaceOnUse"
             >
               <path
-                d="M 40 0 L 0 0 0 40"
+                d="M 36 0 L 0 0 0 36"
                 fill="none"
                 stroke="#31572c"
                 strokeWidth="0.8"
               />
             </pattern>
           </defs>
-          <rect width="1000" height="600" fill="url(#campus-grid)" />
+          <rect width="1000" height="560" fill="url(#campus-grid-pattern)" />
 
-          {/* Building Footprint Outline */}
+          {/* Floor Perimeter Boundary */}
           <rect
-            x="80"
+            x="60"
             y="40"
-            width="840"
-            height="520"
+            width="880"
+            height="480"
             rx="24"
             fill="#151e0a"
             stroke="#31572c"
@@ -120,26 +122,30 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             strokeDasharray="6 6"
           />
           <text
-            x="110"
+            x="90"
             y="75"
             fill="#8c9387"
-            fontSize="14"
+            fontSize="13"
             fontWeight="bold"
             letterSpacing="2"
             fontFamily="Sora"
           >
             {selectedCampus === 'sst_bangalore'
-              ? 'SST MAIN ACADEMIC BLOCK'
-              : '20-ACRE INNOVATION PARK'}
+              ? `SST MAIN BLOCK • ${mapFloor.toUpperCase()}`
+              : '20-ACRE INNOVATION MASTER PARK'}
           </text>
 
-          {/* Render Active Campus Rooms as Interactive SVG Nodes */}
-          {filteredLocations.map((loc) => {
+          {/* Render Room Nodes */}
+          {filteredLocations.map((loc, idx) => {
             const pct = Math.round(
               (loc.current_occupancy / Math.max(1, loc.capacity)) * 100
             );
             const isRecommended = recommendedLocationId === loc.id;
             const colors = getCrowdColor(pct);
+
+            // Compute clean x coordinate if multiple rooms on 'all'
+            const nodeX = loc.coordinates_x;
+            const nodeY = loc.coordinates_y;
 
             return (
               <g
@@ -149,25 +155,25 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                 onMouseLeave={() => setHoveredLoc(null)}
                 className="cursor-pointer transition-all duration-300"
               >
-                {/* Pulsing Radar Ring for Top Recommendation */}
+                {/* Pulsing Radar Beacon for Top Recommendation */}
                 {isRecommended && (
                   <circle
-                    cx={loc.coordinates_x}
-                    cy={loc.coordinates_y}
-                    r="40"
+                    cx={nodeX}
+                    cy={nodeY}
+                    r="55"
                     fill="none"
                     stroke="#a6d29b"
                     strokeWidth="3"
-                    className="radar-beacon opacity-75"
+                    className="radar-beacon opacity-80"
                   />
                 )}
 
-                {/* Outer Room Geometry Box */}
+                {/* Room Geometry Card */}
                 <rect
-                  x={loc.coordinates_x - 70}
-                  y={loc.coordinates_y - 45}
-                  width="140"
-                  height="90"
+                  x={nodeX - 100}
+                  y={nodeY - 55}
+                  width="200"
+                  height="110"
                   rx="14"
                   fill="#19220e"
                   stroke={isRecommended ? '#c5cc7b' : '#31572c'}
@@ -175,59 +181,59 @@ export const CampusMap: React.FC<CampusMapProps> = ({
                   className="transition-all hover:fill-[#232d18]"
                 />
 
-                {/* Heat Indicator Color Bar on Room Top */}
+                {/* Heat Indicator Color Bar on Top */}
                 <rect
-                  x={loc.coordinates_x - 70}
-                  y={loc.coordinates_y - 45}
-                  width="140"
+                  x={nodeX - 100}
+                  y={nodeY - 55}
+                  width="200"
                   height="6"
                   rx="3"
                   fill={colors.hex}
                 />
 
-                {/* Room Label */}
+                {/* Room Name */}
                 <text
-                  x={loc.coordinates_x}
-                  y={loc.coordinates_y - 15}
+                  x={nodeX}
+                  y={nodeY - 20}
                   textAnchor="middle"
                   fill="#dbe7c6"
                   fontSize="12"
                   fontWeight="bold"
                   fontFamily="Sora"
                 >
-                  {loc.name.length > 18 ? loc.name.substring(0, 16) + '…' : loc.name}
+                  {loc.name.length > 22 ? loc.name.substring(0, 20) + '…' : loc.name}
                 </text>
 
-                {/* Floor Label */}
+                {/* Floor Info */}
                 <text
-                  x={loc.coordinates_x}
-                  y={loc.coordinates_y + 4}
+                  x={nodeX}
+                  y={nodeY + 2}
                   textAnchor="middle"
                   fill="#8c9387"
                   fontSize="10"
                   fontFamily="Inter"
                 >
-                  {loc.floor}
+                  {loc.floor} • {loc.distance_minutes} min walk
                 </text>
 
                 {/* Live Occupancy Metric */}
                 <text
-                  x={loc.coordinates_x}
-                  y={loc.coordinates_y + 24}
+                  x={nodeX}
+                  y={nodeY + 26}
                   textAnchor="middle"
                   fill={colors.hex}
-                  fontSize="12"
+                  fontSize="13"
                   fontWeight="bold"
                   fontFamily="Sora"
                 >
-                  {pct}% ({Math.max(0, loc.capacity - loc.current_occupancy)} free)
+                  {pct}% full ({Math.max(0, loc.capacity - loc.current_occupancy)} free)
                 </text>
               </g>
             );
           })}
         </svg>
 
-        {/* Hovered Space Floating Popover Tooltip */}
+        {/* Hovered Popover Tooltip */}
         {hoveredLoc && (
           <div className="absolute top-4 left-4 z-20 p-3.5 rounded-xl bg-surface-container-high border-2 border-primary-container shadow-2xl backdrop-blur-md max-w-xs animate-in fade-in">
             <div className="flex items-center justify-between gap-2 mb-1">
@@ -246,7 +252,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             </p>
             <div className="flex items-center justify-between text-[11px] text-on-surface-variant pt-2 border-t border-surface-variant font-inter">
               <span>🚶 {hoveredLoc.distance_minutes} min walk</span>
-              <span className="text-tertiary font-bold">Click to view details →</span>
+              <span className="text-tertiary font-bold">Click to view →</span>
             </div>
           </div>
         )}
@@ -265,6 +271,55 @@ export const CampusMap: React.FC<CampusMapProps> = ({
             <span className="w-2.5 h-2.5 rounded-full bg-[#ffb4ab]" />
             <span className="text-on-surface-variant text-[11px]">Crowded (&gt;70%)</span>
           </div>
+        </div>
+      </div>
+
+      {/* Structured Floor Directory Grid */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-sora text-sm font-bold text-on-surface">
+            Rooms on {mapFloor === 'all' ? 'All Floors' : mapFloor} ({filteredLocations.length})
+          </h4>
+          <span className="text-xs text-on-surface-variant font-inter">
+            Click any room to open detailed telemetry or set crowd alerts
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filteredLocations.map((loc) => {
+            const isRec = recommendedLocationId === loc.id;
+            return (
+              <div
+                key={loc.id}
+                onClick={() => onSelectLocation(loc)}
+                className={`p-3.5 rounded-xl bg-surface-container border cursor-pointer transition-all hover:bg-surface-container-highest flex flex-col justify-between gap-2.5 ${
+                  isRec ? 'border-tertiary shadow-md shadow-tertiary/10' : 'border-primary-container/70'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    {isRec && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-tertiary uppercase tracking-wider mb-1 font-sora">
+                        <Sparkles className="w-3 h-3" /> Top Pick
+                      </span>
+                    )}
+                    <h5 className="font-sora text-sm font-bold text-on-surface leading-snug">
+                      {loc.name}
+                    </h5>
+                    <p className="text-[11px] text-on-surface-variant font-inter">
+                      {loc.floor} • {loc.distance_minutes}m walk
+                    </p>
+                  </div>
+                </div>
+
+                <OccupancyBadge
+                  currentOccupancy={loc.current_occupancy}
+                  capacity={loc.capacity}
+                  trend={loc.trend}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

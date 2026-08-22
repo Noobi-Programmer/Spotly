@@ -1,7 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, ArrowRight, Star, VolumeX, Wifi, Zap, Gauge, TrendingUp, BellRing, CheckCircle2, Shield, MapPin, Compass } from 'lucide-react';
+import React from 'react';
+import {
+  Search,
+  Star,
+  VolumeX,
+  Wifi,
+  Zap,
+  TrendingUp,
+  BellRing,
+  Clock,
+  Sparkles,
+  Utensils,
+  Users,
+  Cpu,
+} from 'lucide-react';
 
 interface LandingPageSectionProps {
   onEnterApp: () => void;
@@ -15,12 +28,12 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
   totalAvailableSeats,
 }) => {
   return (
-    <div className="w-full flex flex-col gap-16 md:gap-24 py-6 md:py-12">
+    <div className="w-full flex flex-col gap-20 md:gap-28 py-6 md:py-10">
       {/* ==========================================
           1. HERO SECTION (1:1 STITCH DESKTOP & MOBILE)
          ========================================== */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center min-h-[75vh]">
-        {/* Left Column (7 Cols on desktop): Value Prop & CTAs */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center min-h-[72vh]">
+        {/* Left Column (7 Cols): Value Prop & CTAs */}
         <div className="lg:col-span-7 flex flex-col gap-6 text-left">
           {/* Badge matching Stitch */}
           <div className="inline-flex items-center gap-2 bg-surface-container-high border border-primary-container rounded-full px-4 py-1.5 self-start">
@@ -31,7 +44,7 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
           </div>
 
           {/* Main Headline */}
-          <h1 className="font-sora text-4xl sm:text-6xl lg:text-[62px] font-bold text-on-surface leading-[1.12] tracking-tight">
+          <h1 className="font-sora text-4xl sm:text-6xl lg:text-[58px] font-bold text-on-surface leading-[1.12] tracking-tight">
             Don&apos;t wait.<br />
             Don&apos;t wander.<br />
             <span className="text-tertiary">Just know.</span>
@@ -56,7 +69,7 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
               onClick={onEnterApp}
               className="border border-primary-container text-on-surface px-8 py-4 rounded-xl font-inter font-semibold text-base hover:bg-surface-container-high transition-colors flex items-center justify-center cursor-pointer"
             >
-              How it works
+              Explore Live Spaces
             </button>
           </div>
 
@@ -71,21 +84,21 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
             </span>
             <span className="text-outline-variant">•</span>
             <span>
-              <strong className="text-on-surface font-sora font-bold">{totalAvailableSeats}</strong> seats available right now
+              <strong className="text-on-surface font-sora font-bold">{totalAvailableSeats}</strong> free seats right now
             </span>
           </div>
         </div>
 
-        {/* Right Column (5 Cols on desktop): Stitch Live Map Graphic Container */}
-        <div className="lg:col-span-5 relative w-full h-[540px] bg-surface-container-high rounded-2xl border border-primary-container p-4 sm:p-6 overflow-hidden flex flex-col gap-4 shadow-2xl">
+        {/* Right Column (5 Cols): Stitch Live Map Graphic Container */}
+        <div className="lg:col-span-5 relative w-full h-[520px] bg-surface-container-high rounded-2xl border border-primary-container p-4 sm:p-6 overflow-hidden flex flex-col gap-4 shadow-2xl">
           {/* Mock Map Header */}
           <div className="flex justify-between items-center pb-3 border-b border-surface-variant">
             <div className="font-sora font-bold text-sm text-primary flex items-center gap-2">
-              <span>Live Campus Map</span>
+              <span>Live Campus Radar (Floor 2)</span>
             </div>
             <div className="flex items-center gap-2 text-on-surface-variant text-xs">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-              <span className="font-mono text-[11px] text-primary">SST BLOCK • 2F</span>
+              <span className="font-mono text-[11px] text-primary">SST ELECTRONIC CITY</span>
             </div>
           </div>
 
@@ -94,29 +107,27 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
             {/* SVG Background Grid & Architectural Layout */}
             <svg className="absolute inset-0 w-full h-full opacity-35" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <pattern id="stitch-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+                <pattern id="stitch-grid-hero" width="28" height="28" patternUnits="userSpaceOnUse">
                   <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#31572c" strokeWidth="0.8" />
                 </pattern>
               </defs>
-              <rect width="100%" height="100%" fill="url(#stitch-grid)" />
+              <rect width="100%" height="100%" fill="url(#stitch-grid-hero)" />
               {/* Floor Plan Boundaries */}
-              <rect x="20" y="20" width="140" height="100" rx="10" fill="#151e0a" stroke="#31572c" strokeWidth="1.5" />
-              <rect x="180" y="20" width="140" height="100" rx="10" fill="#151e0a" stroke="#31572c" strokeWidth="1.5" />
-              <rect x="20" y="140" width="300" height="140" rx="12" fill="#19220e" stroke="#31572c" strokeWidth="1.5" />
+              <rect x="20" y="20" width="140" height="90" rx="10" fill="#151e0a" stroke="#31572c" strokeWidth="1.5" />
+              <rect x="180" y="20" width="140" height="90" rx="10" fill="#151e0a" stroke="#31572c" strokeWidth="1.5" />
+              <rect x="20" y="130" width="300" height="120" rx="12" fill="#19220e" stroke="#31572c" strokeWidth="1.5" />
             </svg>
 
-            {/* Map Markers matching Stitch Screenshot */}
+            {/* Map Markers */}
             <div className="relative z-10 flex flex-col gap-3 pt-1">
-              {/* Pin 1: Library */}
               <div className="self-start bg-surface-container-highest/95 border border-primary-container p-2.5 rounded-xl shadow-lg flex flex-col gap-0.5 backdrop-blur-md">
-                <div className="font-sora text-xs font-bold text-on-surface">Reading Room &amp; Library</div>
+                <div className="font-sora text-xs font-bold text-on-surface">Quiet Reading Room</div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                   <span className="text-[10px] font-bold text-primary font-mono tracking-wider">25% OCCUPIED (30 FREE)</span>
                 </div>
               </div>
 
-              {/* Pin 2: Coding Pod B */}
               <div className="self-end bg-surface-container-highest/95 border border-error/40 p-2.5 rounded-xl shadow-lg flex flex-col gap-0.5 backdrop-blur-md">
                 <div className="font-sora text-xs font-bold text-on-surface">Coding Pod B</div>
                 <div className="flex items-center gap-1.5">
@@ -126,7 +137,7 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
               </div>
             </div>
 
-            {/* Best Match Overlay Card at bottom of map (Matching Stitch Screenshot) */}
+            {/* Best Match Overlay Card at bottom of map */}
             <div className="relative z-20 bg-surface-container-high border-2 border-tertiary rounded-xl p-4 flex flex-col gap-2.5 shadow-2xl">
               <div className="flex justify-between items-center">
                 <div className="inline-flex items-center gap-1 bg-tertiary text-on-tertiary px-2 py-0.5 rounded text-[10px] font-bold tracking-wider font-sora">
@@ -148,7 +159,7 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
                 </span>
                 <span className="bg-surface-variant text-on-surface-variant px-2.5 py-0.5 rounded-full text-[11px] flex items-center gap-1 font-inter font-medium">
                   <Wifi className="w-3 h-3 text-primary" />
-                  Wi-Fi
+                  Gigabit Wi-Fi
                 </span>
                 <span className="bg-surface-variant text-on-surface-variant px-2.5 py-0.5 rounded-full text-[11px] flex items-center gap-1 font-inter font-medium">
                   <Zap className="w-3 h-3 text-primary" />
@@ -168,54 +179,167 @@ export const LandingPageSection: React.FC<LandingPageSectionProps> = ({
       </section>
 
       {/* ==========================================
-          2. "WHY SPOTLY?" 3-CARD GRID (MATCHING STITCH)
+          2. HOW SPOTLY WORKS (3-STEP ARCHITECTURE)
          ========================================== */}
-      <section className="flex flex-col gap-6 pt-6">
-        <h2 className="font-sora text-2xl sm:text-4xl font-bold text-on-surface text-center">
-          Why Spotly?
-        </h2>
+      <section className="flex flex-col gap-10">
+        <div className="text-center max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-primary tracking-widest uppercase mb-2 font-sora">
+            <Cpu className="w-4 h-4" />
+            <span>HOW IT WORKS</span>
+          </div>
+          <h2 className="font-sora text-3xl sm:text-4xl font-bold text-on-surface">
+            From Sensor Telemetry to Instant Decision
+          </h2>
+          <p className="font-inter text-sm sm:text-base text-on-surface-variant mt-2">
+            Spotly replaces guessing and wandering with a 3-stage privacy-first intelligence pipeline.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-          {/* Card 1: Save Time */}
-          <div className="bg-surface-container-high rounded-2xl p-6 sm:p-8 border border-primary-container flex flex-col gap-3">
-            <div className="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed mb-1 font-bold shadow-md">
-              <Gauge className="w-6 h-6 text-on-tertiary-fixed" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Step 1 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 sm:p-8 border border-primary-container flex flex-col gap-4 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-tertiary-container text-tertiary flex items-center justify-center font-sora font-bold">
+                01
+              </div>
+              <span className="text-[11px] text-primary font-mono font-semibold">TELEMETRY</span>
             </div>
-            <h3 className="font-sora text-lg font-bold text-on-surface">Save Time</h3>
-            <p className="font-inter text-sm sm:text-base text-on-surface-variant leading-relaxed">
-              Stop wasting 20 minutes circling floors looking for an empty chair. Get instant guidance before you walk.
+            <h3 className="font-sora text-lg font-bold text-on-surface">Zero-PII Density Sensing</h3>
+            <p className="font-inter text-sm text-on-surface-variant leading-relaxed">
+              We monitor aggregate network load and student check-ins without storing personal identities, tracking MAC addresses, or sniffing devices.
             </p>
           </div>
 
-          {/* Card 2: Live Accuracy */}
-          <div className="bg-surface-container-high rounded-2xl p-6 sm:p-8 border border-primary-container flex flex-col gap-3">
-            <div className="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed mb-1 font-bold shadow-md">
-              <TrendingUp className="w-6 h-6 text-on-tertiary-fixed" />
+          {/* Step 2 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 sm:p-8 border border-primary-container flex flex-col gap-4 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-tertiary-container text-tertiary flex items-center justify-center font-sora font-bold">
+                02
+              </div>
+              <span className="text-[11px] text-tertiary font-mono font-semibold">&lt;2ms ENGINE</span>
             </div>
-            <h3 className="font-sora text-lg font-bold text-on-surface">Live Accuracy</h3>
-            <p className="font-inter text-sm sm:text-base text-on-surface-variant leading-relaxed">
-              Data updates in real-time using privacy-first campus network sensors and verified student community reports.
+            <h3 className="font-sora text-lg font-bold text-on-surface">Deterministic Space Matching</h3>
+            <p className="font-inter text-sm text-on-surface-variant leading-relaxed">
+              Our multi-factor scoring evaluates acoustic comfort, charging port availability, walking minutes, and crowd trends with 100% explainability.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 sm:p-8 border border-primary-container flex flex-col gap-4 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-xl bg-tertiary-container text-tertiary flex items-center justify-center font-sora font-bold">
+                03
+              </div>
+              <span className="text-[11px] text-primary font-mono font-semibold">REAL-TIME</span>
+            </div>
+            <h3 className="font-sora text-lg font-bold text-on-surface">Instant Threshold Alerts</h3>
+            <p className="font-inter text-sm text-on-surface-variant leading-relaxed">
+              When high-demand spots like Coding Pod B are full, set a watch target. Spotly chimes and notifies you the second occupancy clears.
             </p>
           </div>
         </div>
       </section>
 
       {/* ==========================================
-          3. NOTIFY ME BANNER (MATCHING STITCH)
+          3. CORE CAPABILITIES (THE 6 PILLARS)
          ========================================== */}
-      <section className="max-w-4xl mx-auto w-full bg-surface-container-highest rounded-2xl p-8 sm:p-12 border border-primary-container text-center flex flex-col items-center gap-4 shadow-2xl">
-        <div className="w-14 h-14 rounded-2xl bg-tertiary-container flex items-center justify-center text-tertiary mb-2">
-          <BellRing className="w-7 h-7 text-tertiary" />
+      <section className="flex flex-col gap-10">
+        <div className="text-center max-w-2xl mx-auto">
+          <h2 className="font-sora text-3xl sm:text-4xl font-bold text-on-surface">
+            Everything You Need to Claim Your Space
+          </h2>
+          <p className="font-inter text-sm sm:text-base text-on-surface-variant mt-2">
+            Built specifically for high-intensity engineering campuses.
+          </p>
         </div>
-        <h3 className="font-sora text-2xl sm:text-3xl font-bold text-on-surface">Full capacity?</h3>
-        <p className="font-inter text-sm sm:text-base text-on-surface-variant max-w-lg leading-relaxed mb-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Feature 1 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 border border-primary-container/70 flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-primary flex items-center justify-center">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <h4 className="font-sora text-base font-bold text-on-surface">Smart Match Hero</h4>
+            <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              Select your immediate vibe: silent focus, collaborative coding, power outlets, or proximity. Instant sub-2ms ranking.
+            </p>
+          </div>
+
+          {/* Feature 2 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 border border-primary-container/70 flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-tertiary flex items-center justify-center">
+              <BellRing className="w-5 h-5" />
+            </div>
+            <h4 className="font-sora text-base font-bold text-on-surface">Watch This Space</h4>
+            <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              Never refresh manually. Set discrete alerts (&le;70%, &le;50%, &le;30%) and get harmonic Web Audio notifications.
+            </p>
+          </div>
+
+          {/* Feature 3 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 border border-primary-container/70 flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-primary flex items-center justify-center">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <h4 className="font-sora text-base font-bold text-on-surface">Dynamic Crowd Trends</h4>
+            <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              Live trend indicators (↗ Getting busier, ↘ Clearing up, → Steady) prevent you from walking toward a space that is filling fast.
+            </p>
+          </div>
+
+          {/* Feature 4 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 border border-primary-container/70 flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-tertiary flex items-center justify-center">
+              <Clock className="w-5 h-5" />
+            </div>
+            <h4 className="font-sora text-base font-bold text-on-surface">Best Time to Go</h4>
+            <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              Predictive time-series recommendations highlighting exact calm hours so you can schedule your deep-work sprint.
+            </p>
+          </div>
+
+          {/* Feature 5 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 border border-primary-container/70 flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-primary flex items-center justify-center">
+              <Users className="w-5 h-5" />
+            </div>
+            <h4 className="font-sora text-base font-bold text-on-surface">1-Tap Crowd Validation</h4>
+            <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              Students confirm room density on-the-spot with single-tap reports, creating high-confidence verified campus data.
+            </p>
+          </div>
+
+          {/* Feature 6 */}
+          <div className="bg-surface-container-high rounded-2xl p-6 border border-primary-container/70 flex flex-col gap-3">
+            <div className="w-10 h-10 rounded-xl bg-surface-container text-tertiary flex items-center justify-center">
+              <Utensils className="w-5 h-5" />
+            </div>
+            <h4 className="font-sora text-base font-bold text-on-surface">Food &amp; Sports Queues</h4>
+            <p className="font-inter text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              Beyond study: check Chef Talk meal queues (~4 min wait vs 18 min at Craving Brew) and rooftop turf sports equipment.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ==========================================
+          4. "FULL CAPACITY? SET ALERT" BANNER (STITCH)
+         ========================================== */}
+      <section className="bg-surface-container-highest rounded-3xl p-8 sm:p-14 border border-primary-container text-center flex flex-col items-center gap-5 shadow-2xl relative overflow-hidden">
+        <div className="w-16 h-16 rounded-2xl bg-tertiary-container text-tertiary flex items-center justify-center shadow-lg">
+          <BellRing className="w-8 h-8" />
+        </div>
+        <h3 className="font-sora text-3xl sm:text-4xl font-bold text-on-surface">
+          Full capacity?
+        </h3>
+        <p className="font-inter text-base sm:text-lg text-on-surface-variant max-w-xl leading-relaxed">
           Set an alert. We&apos;ll ping your phone the second a quiet study room opens up in the Science &amp; Tech Block.
         </p>
         <button
           onClick={onEnterApp}
-          className="w-full sm:w-auto px-10 py-4 bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-base rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer"
+          className="px-10 py-4 bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-base rounded-xl shadow-xl shadow-tertiary/20 transition-all active:scale-95 cursor-pointer mt-2"
         >
-          Set Alert in Live App
+          Open Spotly &amp; Set Watch
         </button>
       </section>
     </div>
