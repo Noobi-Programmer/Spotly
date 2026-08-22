@@ -21,6 +21,8 @@ import { ActiveAlertsDrawer } from '@/components/alerts/ActiveAlertsDrawer';
 import { AlertToast } from '@/components/alerts/AlertToast';
 import { SimulatorControlTray } from '@/components/simulator/SimulatorControlTray';
 import { ArrowLeft } from 'lucide-react';
+import { useSupabaseRealtime } from '@/lib/supabase/useSupabaseRealtime';
+import { getActiveUserSession } from '@/lib/supabase/client';
 
 export default function CampusSpaceApp() {
   const {
@@ -72,6 +74,18 @@ export default function CampusSpaceApp() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  // Mount Supabase Realtime Listener (WebSocket & Auth state changes)
+  useSupabaseRealtime((email) => {
+    setCurrentUser(email);
+  });
+
+  // Restore authenticated session on mount
+  React.useEffect(() => {
+    getActiveUserSession().then(({ email }) => {
+      if (email) setCurrentUser(email);
+    });
+  }, []);
 
   // Available floors in strict order: Upper Basement -> Ground Floor -> Floor 1 -> Floor 2
   const availableFloors = useMemo(() => {

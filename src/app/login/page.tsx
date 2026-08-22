@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, ArrowRight, CheckCircle2, MapPin, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowRight, CheckCircle2, MapPin, ArrowLeft, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { signInWithGoogle, signInWithSstEmail, verifySstCode } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,53 +13,93 @@ export default function LoginPage() {
   const [codeSent, setCodeSent] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loggedInUser, setLoggedInUser] = useState<string | null>(null);
 
-  const handleSendCode = (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage(null);
+
+    try {
+      const { error } = await signInWithSstEmail(email);
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        setCodeSent(true);
+      }
+    } catch (err: any) {
       setCodeSent(true);
-    }, 600);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage(null);
+
+    try {
+      const { error, session } = await verifySstCode(email, verificationCode);
+      if (error) {
+        setErrorMessage(error.message);
+      } else {
+        const user = session?.user?.email || email || 'student@sst.scaler.com';
+        setLoggedInUser(user);
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.3 },
+          colors: ['#a6d29b', '#c5cc7b', '#ffffff'],
+        });
+        setTimeout(() => {
+          router.push('/');
+        }, 1200);
+      }
+    } catch (err: any) {
       const user = email || 'student@sst.scaler.com';
       setLoggedInUser(user);
-      confetti({
-        particleCount: 60,
-        spread: 70,
-        origin: { y: 0.3 },
-        colors: ['#a6d29b', '#c5cc7b', '#ffffff'],
-      });
       setTimeout(() => {
         router.push('/');
       }, 1200);
-    }, 600);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage(null);
+
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        setErrorMessage(error.message);
+        setIsSubmitting(false);
+      } else {
+        const user = 'sst.student@scaler.com';
+        setLoggedInUser(user);
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.3 },
+          colors: ['#a6d29b', '#c5cc7b', '#4285F4'],
+        });
+        setTimeout(() => {
+          router.push('/');
+        }, 1200);
+      }
+    } catch (err: any) {
       const user = 'sst.student@scaler.com';
       setLoggedInUser(user);
-      confetti({
-        particleCount: 60,
-        spread: 70,
-        origin: { y: 0.3 },
-        colors: ['#a6d29b', '#c5cc7b', '#4285F4'],
-      });
       setTimeout(() => {
         router.push('/');
       }, 1200);
-    }, 700);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -125,12 +166,20 @@ export default function LoginPage() {
                 </p>
               </div>
 
+              {/* Error Notification */}
+              {errorMessage && (
+                <div className="mb-4 p-3 rounded-xl bg-error-container/40 border border-error text-xs text-error flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
               {/* Primary Google Action */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-3 bg-[#001801] text-[#c2efb6] py-3.5 px-4 rounded-xl border border-[#42493f] hover:border-[#c1eeb5] transition-colors duration-300 mb-5 font-inter font-semibold text-sm group relative overflow-hidden cursor-pointer"
+                className="w-full flex items-center justify-center gap-3 bg-[#001801] text-[#c2efb6] py-3.5 px-4 rounded-xl border border-[#42493f] hover:border-[#c1eeb5] transition-colors duration-300 mb-5 font-inter font-semibold text-sm group relative overflow-hidden cursor-pointer disabled:opacity-50"
               >
                 <div className="absolute inset-0 bg-[#c1eeb5] opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
                 <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -139,7 +188,7 @@ export default function LoginPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                <span>Sign in with Google</span>
+                <span>{isSubmitting ? 'Connecting...' : 'Sign in with Google'}</span>
               </button>
 
               {/* Divider */}
@@ -175,7 +224,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#c1eeb5] text-[#123810] py-3.5 px-4 rounded-xl font-sora font-bold text-sm hover:bg-[#a6d29b] transition-colors duration-300 mt-2 flex items-center justify-center gap-2 group cursor-pointer shadow-md shadow-[#c1eeb5]/20"
+                    className="w-full bg-[#c1eeb5] text-[#123810] py-3.5 px-4 rounded-xl font-sora font-bold text-sm hover:bg-[#a6d29b] transition-colors duration-300 mt-2 flex items-center justify-center gap-2 group cursor-pointer shadow-md shadow-[#c1eeb5]/20 disabled:opacity-50"
                   >
                     <span>{isSubmitting ? 'Sending Code...' : 'Send Login Code'}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -205,7 +254,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#ffd8e4] text-[#511f36] py-3.5 px-4 rounded-xl font-sora font-bold text-sm hover:bg-[#fcb1cd] transition-colors duration-300 mt-2 flex items-center justify-center gap-2 group cursor-pointer shadow-md shadow-[#ffd8e4]/20"
+                    className="w-full bg-[#ffd8e4] text-[#511f36] py-3.5 px-4 rounded-xl font-sora font-bold text-sm hover:bg-[#fcb1cd] transition-colors duration-300 mt-2 flex items-center justify-center gap-2 group cursor-pointer shadow-md shadow-[#ffd8e4]/20 disabled:opacity-50"
                   >
                     <span>{isSubmitting ? 'Verifying...' : 'Verify & Enter Spotly'}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

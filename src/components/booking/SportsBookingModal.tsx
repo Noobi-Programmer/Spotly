@@ -17,6 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { createSportsBookingInDb } from '@/lib/supabase/client';
 
 interface SportsBookingModalProps {
   location: CampusLocation | null;
@@ -108,7 +109,7 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
     });
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const gearStrings = Object.entries(selectedGear).map(
       ([gear, count]) => `${count}x ${gear}`
     );
@@ -122,6 +123,15 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
     });
 
     try {
+      await createSportsBookingInDb({
+        location_id: location.id,
+        location_name: location.name,
+        court_slot: selectedSlot,
+        gear_items: gearStrings,
+        duration_minutes: durationMinutes,
+        user_email: 'student@sst.scaler.com',
+      });
+
       playAlertChime();
       confetti({
         particleCount: 50,

@@ -22,6 +22,7 @@ import {
 import confetti from 'canvas-confetti';
 
 import { SportsBookingModal } from './SportsBookingModal';
+import { createSeatBookingInDb, cancelSeatBookingInDb } from '@/lib/supabase/client';
 
 interface SeatBookingModalProps {
   location: CampusLocation | null;
@@ -116,7 +117,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
     }
   };
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!selectedSeat) return;
 
     const booking: SeatBooking = {
@@ -133,6 +134,16 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
     setActiveBooking(booking);
 
     try {
+      await createSeatBookingInDb({
+        location_id: location.id,
+        location_name: location.name,
+        location_floor: location.floor,
+        table_number: selectedSeat.table_number,
+        seat_number: selectedSeat.serial_number,
+        user_email: 'student@sst.scaler.com',
+        duration_hours: durationHours,
+      });
+
       playAlertChime();
       confetti({
         particleCount: 50,
@@ -145,7 +156,14 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
     }
   };
 
-  const handleCancelBooking = () => {
+  const handleCancelBooking = async () => {
+    if (activeBooking) {
+      try {
+        await cancelSeatBookingInDb(activeBooking.id);
+      } catch (e) {
+        // fallback
+      }
+    }
     setActiveBooking(null);
     setSelectedSeat(null);
   };
