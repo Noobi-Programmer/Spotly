@@ -77,8 +77,8 @@ export default function CampusSpaceApp() {
     runPresetScenario,
   } = useCampusStore();
 
-  // P0 DIRECTIVE: OPEN DIRECTLY INTO APP (NOT MARKETING LANDING PAGE)
-  const [showLanding, setShowLanding] = useState(false);
+  // DEFAULT VIEW: SAAS HOMEPAGE / LANDING
+  const [showLanding, setShowLanding] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [spaciousOnly, setSpaciousOnly] = useState(false);
   const [isActiveAlertsDrawerOpen, setIsActiveAlertsDrawerOpen] = useState(false);
@@ -198,6 +198,20 @@ export default function CampusSpaceApp() {
           />
         ) : (
           <>
+            {/* Return to Homepage Bar */}
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-surface-variant">
+              <button
+                onClick={() => setShowLanding(true)}
+                className="flex items-center gap-1.5 text-xs font-sora font-semibold text-primary hover:text-tertiary transition-colors cursor-pointer"
+              >
+                <ArrowRight className="w-4 h-4 rotate-180" />
+                <span>Return to Homepage</span>
+              </button>
+              <span className="text-xs font-mono text-on-surface-variant">
+                SPOTLY LIVE ENGINE
+              </span>
+            </div>
+
             {/* Location Permission & Geo Banner */}
             <LocationPermissionBanner />
 
