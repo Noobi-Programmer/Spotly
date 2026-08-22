@@ -195,22 +195,22 @@ export const CampusMap: React.FC<CampusMapProps> = ({
           {/* Floor Level Lane Indicators in "All Levels" view */}
           {mapFloor === 'all' ? (
             <g>
-              <text x="50" y="55" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+              <text x="50" y="42" fill="#8c9387" fontSize="10.5" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
                 FLOOR 2 • CODING LABS
               </text>
-              <line x1="45" y1="165" x2="945" y2="165" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="45" y1="150" x2="945" y2="150" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
 
-              <text x="50" y="180" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+              <text x="50" y="166" fill="#8c9387" fontSize="10.5" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
                 FLOOR 1 • INNOVATION &amp; READING
               </text>
-              <line x1="45" y1="285" x2="945" y2="285" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="45" y1="270" x2="945" y2="270" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
 
-              <text x="50" y="300" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+              <text x="50" y="286" fill="#8c9387" fontSize="10.5" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
                 GROUND FLOOR • CLASSROOM &amp; SPORTS
               </text>
-              <line x1="45" y1="415" x2="945" y2="415" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
+              <line x1="45" y1="395" x2="945" y2="395" stroke="#31572c" strokeWidth="1" strokeDasharray="4 4" />
 
-              <text x="50" y="430" fill="#8c9387" fontSize="11" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
+              <text x="50" y="412" fill="#8c9387" fontSize="10.5" fontWeight="bold" fontFamily="Sora" letterSpacing="1">
                 UPPER BASEMENT • MESS &amp; RECREATION
               </text>
             </g>

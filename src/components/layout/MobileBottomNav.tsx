@@ -1,0 +1,81 @@
+'use client';
+
+import React from 'react';
+import { Home, Compass, Sparkles, Bell } from 'lucide-react';
+
+interface MobileBottomNavProps {
+  activeTab: 'cards' | 'map' | 'recommend' | 'alerts';
+  onSelectTab: (tab: 'cards' | 'map' | 'recommend' | 'alerts') => void;
+  activeAlertsCount: number;
+}
+
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
+  activeTab,
+  onSelectTab,
+  activeAlertsCount,
+}) => {
+  return (
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface-container-high/95 backdrop-blur-xl border-t border-primary-container/80 px-2 py-2 safe-area-pb shadow-2xl">
+      <div className="grid grid-cols-4 items-center gap-1 max-w-md mx-auto">
+        {/* 1. Home / Spaces */}
+        <button
+          onClick={() => onSelectTab('cards')}
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'cards'
+              ? 'text-primary font-bold bg-primary-container/40'
+              : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <Home className="w-5 h-5" />
+          <span className="text-[10px] font-sora tracking-tight">Home</span>
+        </button>
+
+        {/* 2. Explore (Radar Map) */}
+        <button
+          onClick={() => onSelectTab('map')}
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'map'
+              ? 'text-primary font-bold bg-primary-container/40'
+              : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <Compass className="w-5 h-5" />
+          <span className="text-[10px] font-sora tracking-tight">Explore</span>
+        </button>
+
+        {/* 3. Find (Brain / Instant Match) */}
+        <button
+          onClick={() => onSelectTab('recommend')}
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'recommend'
+              ? 'text-tertiary font-bold bg-tertiary-container/40'
+              : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <Sparkles className="w-5 h-5 text-tertiary" />
+          <span className="text-[10px] font-sora tracking-tight">Find</span>
+        </button>
+
+        {/* 4. Alerts */}
+        <button
+          onClick={() => onSelectTab('alerts')}
+          className={`flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl transition-all relative cursor-pointer ${
+            activeTab === 'alerts'
+              ? 'text-primary font-bold bg-primary-container/40'
+              : 'text-on-surface-variant hover:text-on-surface'
+          }`}
+        >
+          <div className="relative">
+            <Bell className="w-5 h-5" />
+            {activeAlertsCount > 0 && (
+              <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-error text-on-error font-mono text-[9px] font-bold flex items-center justify-center">
+                {activeAlertsCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-sora tracking-tight">Alerts</span>
+        </button>
+      </div>
+    </nav>
+  );
+};

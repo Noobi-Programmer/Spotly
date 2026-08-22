@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCampusStore } from '@/lib/store/useCampusStore';
 import { rankSpaces } from '@/lib/engine/recommendation';
 import { CampusLocation } from '@/types';
 import { SST_FLOOR_ORDER } from '@/lib/supabase/seed-data';
 import { Header } from '@/components/layout/Header';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { LandingPageSection } from '@/components/landing/LandingPageSection';
 import { LocationPermissionBanner } from '@/components/layout/LocationPermissionBanner';
-import { SpaceFilters } from '@/components/spaces/SpaceFilters';
 import { BlockWiseSpaceView } from '@/components/spaces/BlockWiseSpaceView';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
 import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
@@ -20,7 +20,20 @@ import { NotifyModal } from '@/components/alerts/NotifyModal';
 import { ActiveAlertsDrawer } from '@/components/alerts/ActiveAlertsDrawer';
 import { AlertToast } from '@/components/alerts/AlertToast';
 import { SimulatorControlTray } from '@/components/simulator/SimulatorControlTray';
-import { ArrowLeft } from 'lucide-react';
+import {
+  Sparkles,
+  Search,
+  Zap,
+  VolumeX,
+  Wifi,
+  Users,
+  Navigation,
+  Compass,
+  Home,
+  SlidersHorizontal,
+  ArrowRight,
+  BookOpen,
+} from 'lucide-react';
 import { useSupabaseRealtime } from '@/lib/supabase/useSupabaseRealtime';
 import { getActiveUserSession } from '@/lib/supabase/client';
 
@@ -64,8 +77,8 @@ export default function CampusSpaceApp() {
     runPresetScenario,
   } = useCampusStore();
 
-  // DEFAULT TO LANDING PAGE
-  const [showLanding, setShowLanding] = useState(true);
+  // P0 DIRECTIVE: OPEN DIRECTLY INTO APP (NOT MARKETING LANDING PAGE)
+  const [showLanding, setShowLanding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [spaciousOnly, setSpaciousOnly] = useState(false);
   const [isActiveAlertsDrawerOpen, setIsActiveAlertsDrawerOpen] = useState(false);
@@ -75,30 +88,24 @@ export default function CampusSpaceApp() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
 
+  // Time-aware greeting
+  const currentHour = new Date().getHours();
+  const greeting =
+    currentHour < 12 ? 'Good morning.' : currentHour < 17 ? 'Good afternoon.' : 'Good evening.';
+
   // Mount Supabase Realtime Listener (WebSocket & Auth state changes)
   useSupabaseRealtime((email) => {
     setCurrentUser(email);
   });
 
   // Restore authenticated session on mount
-  React.useEffect(() => {
+  useEffect(() => {
     getActiveUserSession().then(({ email }) => {
       if (email) setCurrentUser(email);
     });
   }, []);
 
-  // Available floors in strict order: Upper Basement -> Ground Floor -> Floor 1 -> Floor 2
-  const availableFloors = useMemo(() => {
-    const floorSet = Array.from(new Set(currentCampusLocations.map((l) => l.floor)));
-    return floorSet.sort((a, b) => {
-      const idxA = SST_FLOOR_ORDER.indexOf(a);
-      const idxB = SST_FLOOR_ORDER.indexOf(b);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      return a.localeCompare(b);
-    });
-  }, [currentCampusLocations]);
-
-  // Compute top recommendation within active campus using live coordinates & category
+  // Compute top recommendation within active campus using live coordinates & preferences
   const rankedSpaces = useMemo(() => {
     const pool =
       selectedCategory !== 'all'
@@ -109,15 +116,12 @@ export default function CampusSpaceApp() {
 
   const topRecommendation = rankedSpaces.length > 0 ? rankedSpaces[0] : null;
 
-  // Filter locations for the grid / map
+  // Filter locations for grid/map
   const filteredLocations = useMemo(() => {
     return currentCampusLocations.filter((loc) => {
-      // Category Filter (Study / Food / Sports)
       if (selectedCategory !== 'all' && loc.category !== selectedCategory) {
         return false;
       }
-
-      // Search
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matches =
@@ -126,50 +130,12 @@ export default function CampusSpaceApp() {
           loc.description.toLowerCase().includes(q) ||
           loc.floor.toLowerCase().includes(q) ||
           loc.type.toLowerCase().includes(q) ||
-          loc.category.toLowerCase().includes(q) ||
-          (loc.mess_provider && loc.mess_provider.toLowerCase().includes(q)) ||
-          (loc.meal_type && loc.meal_type.toLowerCase().includes(q));
+          loc.category.toLowerCase().includes(q);
         if (!matches) return false;
       }
-
-      // Floor Filter
-      if (selectedFloor !== 'all' && loc.floor !== selectedFloor) {
-        return false;
-      }
-
-      // Space Type
-      if (filterType !== 'all' && loc.type !== filterType) {
-        return false;
-      }
-
-      // Quiet
-      if (filterQuietOnly && !loc.is_quiet) {
-        return false;
-      }
-
-      // Charging
-      if (filterChargingOnly && !loc.has_charging) {
-        return false;
-      }
-
-      // Spacious (<50%)
-      if (spaciousOnly) {
-        const pct = Math.round((loc.current_occupancy / Math.max(1, loc.capacity)) * 100);
-        if (pct >= 50) return false;
-      }
-
       return true;
     });
-  }, [
-    currentCampusLocations,
-    selectedCategory,
-    searchQuery,
-    selectedFloor,
-    filterType,
-    filterQuietOnly,
-    filterChargingOnly,
-    spaciousOnly,
-  ]);
+  }, [currentCampusLocations, selectedCategory, searchQuery]);
 
   const handleOpenNotify = (loc: CampusLocation) => {
     setTargetNotifyLocation(loc);
@@ -181,20 +147,49 @@ export default function CampusSpaceApp() {
     setIsBookingModalOpen(true);
   };
 
+  const toggleChipPreference = (chip: 'quiet' | 'charging' | 'wifi' | 'lowCrowd' | 'nearMe') => {
+    if (chip === 'quiet') {
+      setUserPreferences({
+        ...userPreferences,
+        quiet: !userPreferences.quiet,
+      });
+    } else if (chip === 'charging') {
+      setUserPreferences({
+        ...userPreferences,
+        charging: !userPreferences.charging,
+      });
+    } else if (chip === 'wifi') {
+      setUserPreferences({
+        ...userPreferences,
+        wifi: !userPreferences.wifi,
+      });
+    } else if (chip === 'lowCrowd') {
+      setUserPreferences({
+        ...userPreferences,
+        low_crowd: !userPreferences.low_crowd,
+      });
+    } else if (chip === 'nearMe') {
+      setUserPreferences({
+        ...userPreferences,
+        nearby: !userPreferences.nearby,
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary">
+    <div className="min-h-screen flex flex-col bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary pb-16 md:pb-0">
       {/* Top Navigation Bar */}
       <Header
         onOpenActiveAlerts={() => setIsActiveAlertsDrawerOpen(true)}
+        activeAlertCount={alerts.filter((a) => a.is_active).length}
         showLanding={showLanding}
         onToggleLanding={() => setShowLanding(!showLanding)}
-        onSelectCategoryNav={(cat) => setSearchQuery('')}
-        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenLoginModal={() => setIsLoginModalOpen(true)}
         currentUser={currentUser}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-6 sm:py-10">
+      {/* Main App Container */}
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-6 sm:py-8">
         {showLanding ? (
           <LandingPageSection
             onEnterApp={() => setShowLanding(false)}
@@ -203,105 +198,188 @@ export default function CampusSpaceApp() {
           />
         ) : (
           <>
-            {/* Back to Overview Banner */}
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-surface-variant">
-              <button
-                onClick={() => setShowLanding(true)}
-                className="flex items-center gap-1.5 text-xs font-sora font-semibold text-primary hover:text-tertiary transition-colors cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Overview Landing</span>
-              </button>
-              <div className="text-xs text-on-surface-variant font-inter">
-                {selectedCategory === 'all'
-                  ? `All Campus Resources (${filteredLocations.length})`
-                  : selectedCategory === 'study'
-                  ? `📚 Study & Focus Spaces (${filteredLocations.length})`
-                  : selectedCategory === 'food'
-                  ? `🍴 Cafeteria & Mess Queues (${filteredLocations.length})`
-                  : `🏀 Sports & Recreation (${filteredLocations.length})`}
-              </div>
-            </div>
-
-            {/* Geolocation Permission Banner */}
+            {/* Location Permission & Geo Banner */}
             <LocationPermissionBanner />
 
-            {/* Hero Recommendation Banner */}
-            <RecommendationBanner
-              recommendation={topRecommendation}
-              onSelect={(loc) => setSelectedLocation(loc)}
-              onNotify={handleOpenNotify}
-              onBookSeat={handleOpenBookSeat}
-              onOpenFinder={() => setIsFindModalOpen(true)}
-            />
+            {/* 🌟 APP-FIRST OPENING HERO & BRAIN QUERY BAR */}
+            <section className="mb-6">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary font-mono block mb-1">
+                    SPOTLY CAMPUS DECISION ENGINE
+                  </span>
+                  <h1 className="font-sora text-2xl sm:text-3xl lg:text-4xl font-extrabold text-on-surface tracking-tight">
+                    {greeting} <span className="text-tertiary font-normal">What do you need right now?</span>
+                  </h1>
+                </div>
 
-            {/* Filters and View Switcher */}
-            <SpaceFilters
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              selectedType={filterType}
-              onTypeChange={setFilterType}
-              selectedFloor={selectedFloor}
-              onFloorChange={setSelectedFloor}
-              quietOnly={filterQuietOnly}
-              onQuietToggle={setFilterQuietOnly}
-              chargingOnly={filterChargingOnly}
-              onChargingToggle={setFilterChargingOnly}
-              spaciousOnly={spaciousOnly}
-              onSpaciousToggle={setSpaciousOnly}
-              activeView={activeTab}
-              onViewChange={setActiveTab}
-              availableFloors={availableFloors}
-            />
+                {/* View Switcher: Spaces vs Map */}
+                <div className="hidden sm:flex items-center gap-1.5 p-1 rounded-2xl bg-surface-container border border-primary-container/80 text-xs">
+                  <button
+                    onClick={() => setActiveTab('cards')}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-sora font-semibold transition-all cursor-pointer ${
+                      activeTab === 'cards'
+                        ? 'bg-primary text-on-primary shadow-sm font-bold'
+                        : 'text-on-surface-variant hover:text-on-surface'
+                    }`}
+                  >
+                    <Home className="w-3.5 h-3.5" />
+                    <span>Spaces</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('map')}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-sora font-semibold transition-all cursor-pointer ${
+                      activeTab === 'map'
+                        ? 'bg-primary text-on-primary shadow-sm font-bold'
+                        : 'text-on-surface-variant hover:text-on-surface'
+                    }`}
+                  >
+                    <Compass className="w-3.5 h-3.5" />
+                    <span>Radar Map</span>
+                  </button>
+                </div>
+              </div>
 
-            {/* Content View: Intent-First Block-Wise Canvas vs Collision-Free Map */}
-            {activeTab === 'cards' ? (
+              {/* Requirement Chips & Quick Intent Triggers */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="text-xs text-on-surface-variant font-inter font-medium hidden sm:inline mr-1">
+                  Tell Spotly:
+                </span>
+
+                {/* Chip: Quiet */}
+                <button
+                  type="button"
+                  onClick={() => toggleChipPreference('quiet')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-sora font-semibold border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
+                    userPreferences.quiet
+                      ? 'bg-primary text-on-primary border-primary shadow-sm'
+                      : 'bg-surface-container hover:bg-surface-container-high border-primary-container text-on-surface'
+                  }`}
+                >
+                  <VolumeX className="w-3.5 h-3.5" />
+                  <span>Quiet Zone</span>
+                </button>
+
+                {/* Chip: Charging */}
+                <button
+                  type="button"
+                  onClick={() => toggleChipPreference('charging')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-sora font-semibold border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
+                    userPreferences.charging
+                      ? 'bg-primary text-on-primary border-primary shadow-sm'
+                      : 'bg-surface-container hover:bg-surface-container-high border-primary-container text-on-surface'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Power Charging</span>
+                </button>
+
+                {/* Chip: Gigabit Wi-Fi */}
+                <button
+                  type="button"
+                  onClick={() => toggleChipPreference('wifi')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-sora font-semibold border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
+                    userPreferences.wifi
+                      ? 'bg-primary text-on-primary border-primary shadow-sm'
+                      : 'bg-surface-container hover:bg-surface-container-high border-primary-container text-on-surface'
+                  }`}
+                >
+                  <Wifi className="w-3.5 h-3.5" />
+                  <span>Gigabit Wi-Fi</span>
+                </button>
+
+                {/* Chip: Low Crowd */}
+                <button
+                  type="button"
+                  onClick={() => toggleChipPreference('lowCrowd')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-sora font-semibold border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
+                    userPreferences.low_crowd
+                      ? 'bg-primary text-on-primary border-primary shadow-sm'
+                      : 'bg-surface-container hover:bg-surface-container-high border-primary-container text-on-surface'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Low Crowd (&lt;40%)</span>
+                </button>
+
+                {/* Chip: Near Me */}
+                <button
+                  type="button"
+                  onClick={() => toggleChipPreference('nearMe')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-sora font-semibold border flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
+                    userPreferences.nearby
+                      ? 'bg-primary text-on-primary border-primary shadow-sm'
+                      : 'bg-surface-container hover:bg-surface-container-high border-primary-container text-on-surface'
+                  }`}
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>Near Me (&lt;3 min)</span>
+                </button>
+
+                {/* Open Full AI Finder */}
+                <button
+                  type="button"
+                  onClick={() => setIsFindModalOpen(true)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-sora font-bold bg-tertiary/20 hover:bg-tertiary/30 text-tertiary border border-tertiary/50 flex items-center gap-1 ml-auto transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Custom Match →</span>
+                </button>
+              </div>
+            </section>
+
+            {/* 🏆 DOMINANT RECOMMENDATION CARD (SPOTLY BRAIN RESULT) */}
+            {topRecommendation && (
+              <RecommendationBanner
+                recommendation={topRecommendation}
+                onSelect={(loc) => setSelectedLocation(loc)}
+                onNotify={handleOpenNotify}
+                onBookSeat={handleOpenBookSeat}
+                onOpenFinder={() => setIsFindModalOpen(true)}
+              />
+            )}
+
+            {/* View Switch Content: Interactive Map vs Block-Wise Layout */}
+            {activeTab === 'map' ? (
+              <CampusMap
+                locations={currentCampusLocations}
+                selectedCampus={selectedCampus}
+                onSelectLocation={(loc) => setSelectedLocation(loc)}
+                recommendedLocationId={topRecommendation?.location.id}
+              />
+            ) : (
               <BlockWiseSpaceView
                 locations={filteredLocations}
                 selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
+                onSelectCategory={(cat) => setSelectedCategory(cat)}
                 onSelectLocation={(loc) => setSelectedLocation(loc)}
                 onNotify={handleOpenNotify}
                 onBookSeat={handleOpenBookSeat}
                 highlightedId={topRecommendation?.location.id}
-                userCoordinates={userCoordinates}
-              />
-            ) : (
-              <CampusMap
-                locations={filteredLocations.length > 0 ? filteredLocations : currentCampusLocations}
-                selectedCampus={selectedCampus}
-                onSelectLocation={(loc) => setSelectedLocation(loc)}
-                recommendedLocationId={topRecommendation?.location.id}
               />
             )}
           </>
         )}
       </main>
 
-      {/* Modals and Drawers */}
-      {/* 1. Spotly Login Modal */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={(email) => setCurrentUser(email)}
-      />
+      {/* Mobile Bottom Navigation (Home | Explore | Find | Alerts) */}
+      {!showLanding && (
+        <MobileBottomNav
+          activeTab={activeTab}
+          onSelectTab={(tab) => {
+            if (tab === 'cards' || tab === 'map') {
+              setActiveTab(tab);
+            } else if (tab === 'recommend') {
+              setIsFindModalOpen(true);
+            } else if (tab === 'alerts') {
+              setIsActiveAlertsDrawerOpen(true);
+            }
+          }}
+          activeAlertsCount={alerts.filter((a) => a.is_active).length}
+        />
+      )}
 
-      {/* 2. Find My Space Modal */}
-      <FindSpaceModal
-        isOpen={isFindModalOpen}
-        onClose={() => setIsFindModalOpen(false)}
-        locations={currentCampusLocations}
-        onApplyPreferences={(prefs) => setUserPreferences(prefs)}
-        onSelectRecommendedLocation={(loc) => {
-          setSelectedLocation(loc);
-          setShowLanding(false);
-        }}
-        userCoordinates={userCoordinates}
-      />
-
-      {/* 3. Space Detail Modal with 1-Tap Crowd Reports & Seat Booking */}
+      {/* Location Details Bottom-Sheet / Modal */}
       <SpaceDetailModal
         location={selectedLocation}
         onClose={() => setSelectedLocation(null)}
@@ -310,30 +388,44 @@ export default function CampusSpaceApp() {
         onSubmitReport={submitCrowdReport}
       />
 
-      {/* 4. Full Room Seat Booking Modal */}
+      {/* Seat Booking Modal */}
       <SeatBookingModal
         location={targetBookingLocation}
         isOpen={isBookingModalOpen}
-        onClose={() => {
-          setIsBookingModalOpen(false);
-          setTargetBookingLocation(null);
-        }}
+        onClose={() => setIsBookingModalOpen(false)}
       />
 
-      {/* 5. Watch This Space Threshold Modal */}
+      {/* Spotly Auth Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={(email) => setCurrentUser(email)}
+      />
+
+      {/* Spotly Recommendation Finder Brain */}
+      <FindSpaceModal
+        isOpen={isFindModalOpen}
+        onClose={() => setIsFindModalOpen(false)}
+        locations={currentCampusLocations}
+        onApplyPreferences={(prefs) => setUserPreferences(prefs)}
+        onSelectRecommendedLocation={(loc) => {
+          setSelectedLocation(loc);
+          setIsFindModalOpen(false);
+        }}
+        userCoordinates={userCoordinates}
+      />
+
+      {/* Notify Watch Threshold Modal */}
       <NotifyModal
         location={targetNotifyLocation}
         isOpen={isNotifyModalOpen}
-        onClose={() => {
-          setIsNotifyModalOpen(false);
-          setTargetNotifyLocation(null);
-        }}
+        onClose={() => setIsNotifyModalOpen(false)}
         onCreateAlert={(locationId, threshold) => {
           createAlert(locationId, threshold);
         }}
       />
 
-      {/* 6. My Watches Drawer */}
+      {/* Active Alerts Watch Drawer */}
       <ActiveAlertsDrawer
         isOpen={isActiveAlertsDrawerOpen}
         onClose={() => setIsActiveAlertsDrawerOpen(false)}
@@ -342,21 +434,21 @@ export default function CampusSpaceApp() {
         onRemoveAlert={removeAlert}
         onSelectLocation={(loc) => {
           setSelectedLocation(loc);
-          setShowLanding(false);
+          setIsActiveAlertsDrawerOpen(false);
         }}
       />
 
-      {/* 7. Triggered Alert Hero Toast (confetti + audio chime) */}
+      {/* Real-time Alert Toast Notification */}
       <AlertToast
         data={activeAlertTrigger}
         onDismiss={clearAlertTrigger}
         onGoToSpace={(loc) => {
           setSelectedLocation(loc);
-          setShowLanding(false);
+          clearAlertTrigger();
         }}
       />
 
-      {/* 8. Admin / Demo Simulator Control Tray */}
+      {/* Backstage Hackathon Simulator Control Tray */}
       <SimulatorControlTray
         isOpen={isSimulatorOpen}
         onClose={() => setIsSimulatorOpen(false)}
@@ -365,25 +457,34 @@ export default function CampusSpaceApp() {
         onRunPreset={runPresetScenario}
       />
 
-      {/* Footer */}
-      <footer className="w-full border-t border-primary-container bg-surface-container-low py-10 px-4 sm:px-8 lg:px-12 mt-16 text-xs text-on-surface-variant font-inter">
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      {/* Clean Hackathon Footer */}
+      <footer className="w-full border-t border-primary-container bg-surface-container-low py-8 px-4 sm:px-8 lg:px-12 mt-12 text-xs text-on-surface-variant font-inter">
+        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-sm shadow-md">
+            <div className="w-7 h-7 rounded-lg bg-primary-container border border-primary text-primary flex items-center justify-center font-sora font-black text-xs">
               S
             </div>
             <div>
-              <span className="font-sora font-bold text-on-surface text-sm">Spotly</span>
-              <p className="text-[11px] text-on-surface-variant">Don&apos;t wait. Don&apos;t wander. Just know.</p>
+              <span className="font-sora font-bold text-on-surface">Spotly</span>
+              <span className="text-[11px] text-on-surface-variant ml-2 font-inter">
+                Don&apos;t wait. Don&apos;t wander. Just know.
+              </span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-on-surface-variant font-inter">
-            <span className="flex items-center gap-1.5 text-primary font-sora font-semibold">
+          <div className="flex flex-wrap items-center gap-3 text-on-surface-variant font-inter">
+            <span className="text-primary font-sora font-semibold">
               ✨ Team Spark (Abinivesh • Khwahish • Urmi)
             </span>
             <span>•</span>
-            <span>Scaler School of Technology • Gradient Rush</span>
+            <span>Scaler School of Technology</span>
+            <span>•</span>
+            <button
+              onClick={() => setShowLanding(!showLanding)}
+              className="text-tertiary hover:underline font-semibold cursor-pointer"
+            >
+              {showLanding ? 'Live Spaces' : 'Overview Landing'}
+            </button>
           </div>
         </div>
       </footer>

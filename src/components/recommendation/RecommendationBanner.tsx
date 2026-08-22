@@ -2,8 +2,18 @@
 
 import React from 'react';
 import { RecommendationResult, CampusLocation } from '@/types';
-import { Sparkles, Navigation, Eye, CheckCircle2, Armchair, SlidersHorizontal } from 'lucide-react';
-import { OccupancyBadge } from '../spaces/OccupancyBadge';
+import {
+  Sparkles,
+  Navigation,
+  Eye,
+  CheckCircle2,
+  Armchair,
+  ArrowRight,
+  Zap,
+  VolumeX,
+  Wifi,
+  Trophy,
+} from 'lucide-react';
 
 interface RecommendationBannerProps {
   recommendation: RecommendationResult | null;
@@ -11,6 +21,7 @@ interface RecommendationBannerProps {
   onNotify: (loc: CampusLocation) => void;
   onBookSeat?: (loc: CampusLocation) => void;
   onOpenFinder: () => void;
+  onQuickPrefToggle?: (pref: 'quiet' | 'charging' | 'wifi' | 'lowCrowd') => void;
 }
 
 export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
@@ -19,6 +30,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
   onNotify,
   onBookSeat,
   onOpenFinder,
+  onQuickPrefToggle,
 }) => {
   if (!recommendation) return null;
 
@@ -26,11 +38,16 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
     recommendation;
   const isFull = !isAvailable;
   const freeSeats = Math.max(0, location.capacity - location.current_occupancy);
+  const isSports = location.category === 'sports';
+
+  // Density Bar calculation: 10 segments
+  const filledBlocks = Math.round((occupancyPercentage / 100) * 10);
 
   return (
     <div className="relative rounded-3xl p-6 sm:p-8 bg-surface-container-high border-2 border-primary-container shadow-2xl mb-8 overflow-hidden">
       {/* Background Ambient Glow */}
       <div className="absolute -right-16 -top-16 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-tertiary/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         {/* Left Info Column */}
@@ -38,7 +55,7 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
           <div className="flex items-center gap-2.5 mb-2.5 flex-wrap">
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container border border-primary-container text-tertiary text-xs font-bold tracking-wide font-sora shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-tertiary" />
-              #1 TOP MATCH FOR YOU
+              SPOTLY DECISION ENGINE
             </span>
             <span className="text-xs font-black text-on-tertiary-fixed bg-tertiary-fixed px-3 py-0.5 rounded-full font-sora shadow-sm">
               {matchScore}% Match
@@ -47,20 +64,21 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
 
           <h2
             onClick={() => onSelect(location)}
-            className="font-sora text-xl sm:text-2xl font-bold text-on-surface hover:text-tertiary cursor-pointer transition-colors tracking-tight mb-2"
+            className="font-sora text-2xl sm:text-3xl font-bold text-on-surface hover:text-tertiary cursor-pointer transition-colors tracking-tight mb-2 flex items-center gap-2"
           >
-            {location.name}
+            <span>{location.name}</span>
+            <ArrowRight className="w-5 h-5 text-tertiary" />
           </h2>
 
           <p className="font-inter text-xs sm:text-sm text-on-surface-variant mb-4 max-w-2xl leading-relaxed">
             {location.description}
           </p>
 
-          {/* Explainability Breakdown: "Why Spotly recommends this spot:" */}
+          {/* Explainability Breakdown: "Why Spotly recommends this spot" */}
           <div className="p-3.5 rounded-2xl bg-surface-container border border-primary-container/60 mb-4">
             <div className="text-[11px] font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5 font-sora">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Why Spotly recommends this space:
+              Why this is your best match right now:
             </div>
             <div className="flex flex-wrap gap-2">
               {reasons.map((reason, idx) => (
@@ -75,17 +93,26 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
             </div>
           </div>
 
-          {/* Location details */}
+          {/* Location Amenities & Specs */}
           <div className="flex items-center gap-3.5 text-xs text-on-surface-variant font-inter flex-wrap">
-            <span className="flex items-center gap-1">
-              <Armchair className="w-3.5 h-3.5 text-tertiary" />
-              <strong>{location.table_count || 10}</strong> Tables
-            </span>
-            <span>•</span>
-            <span>
-              <strong>{location.capacity}</strong> Total Seats (
-              <strong className="text-primary">{freeSeats} free</strong>)
-            </span>
+            {isSports ? (
+              <span className="flex items-center gap-1 text-secondary font-bold font-sora">
+                <Trophy className="w-3.5 h-3.5" />
+                <span>Court Open • Locker Gear Free</span>
+              </span>
+            ) : (
+              <>
+                <span className="flex items-center gap-1">
+                  <Armchair className="w-3.5 h-3.5 text-tertiary" />
+                  <strong>{location.table_count || 10}</strong> Tables
+                </span>
+                <span>•</span>
+                <span>
+                  <strong>{location.capacity}</strong> Total Seats (
+                  <strong className="text-primary">{freeSeats} free</strong>)
+                </span>
+              </>
+            )}
             <span>•</span>
             <span>
               Floor: <strong className="text-on-surface font-semibold">{location.floor}</strong>
@@ -101,52 +128,71 @@ export const RecommendationBanner: React.FC<RecommendationBannerProps> = ({
         {/* Right Action Column */}
         <div className="w-full lg:w-72 flex flex-col justify-between gap-4 p-5 rounded-2xl bg-surface-container border border-primary-container shadow-inner">
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2 font-sora">
-              Live Crowd Telemetry
+            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1 font-sora">
+              <span>Live Density</span>
+              <span className="font-mono text-on-surface">{occupancyPercentage}% full</span>
             </div>
-            <OccupancyBadge
-              currentOccupancy={location.current_occupancy}
-              capacity={location.capacity}
-              trend={location.trend}
-            />
+
+            {/* Segmented Density Bar */}
+            <div className="flex items-center gap-1 h-2.5 w-full my-2">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 h-full rounded-full transition-all duration-300 ${
+                    i < filledBlocks
+                      ? occupancyPercentage >= 75
+                        ? 'bg-error'
+                        : occupancyPercentage >= 40
+                        ? 'bg-tertiary'
+                        : 'bg-primary'
+                      : 'bg-surface-variant/40'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="text-[11px] text-primary font-inter font-semibold">
+              🟢 {freeSeats} seats free right now
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            {/* Book Seat CTA */}
+            {/* Primary Action Button */}
             <button
               onClick={() => (onBookSeat ? onBookSeat(location) : onSelect(location))}
               disabled={isFull}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-bold border border-primary-container transition-all active:scale-95 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-surface-container-high disabled:active:scale-100"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary text-xs font-sora font-bold shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-45"
             >
-              <Armchair className="w-3.5 h-3.5 text-tertiary" />
-              <span>{isFull ? 'No seats left' : 'Book Seat (Serial No.)'}</span>
+              {isSports ? (
+                <>
+                  <Trophy className="w-4 h-4" />
+                  <span>Book Court Slot &amp; Gear</span>
+                </>
+              ) : (
+                <>
+                  <Armchair className="w-4 h-4" />
+                  <span>Go There &amp; Pick Seat</span>
+                </>
+              )}
+              <ArrowRight className="w-4 h-4" />
             </button>
 
-            {isFull ? (
-              <button
-                onClick={() => onNotify(location)}
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-surface-container-highest hover:bg-surface-bright text-on-surface border border-outline-variant text-xs font-sora font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
-              >
-                <Eye className="w-3.5 h-3.5 text-tertiary" />
-                <span>Watch Space</span>
-              </button>
-            ) : (
+            {/* Secondary Actions Row */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => onSelect(location)}
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
+                className="flex-1 py-2 px-3 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface text-xs font-sora font-semibold border border-primary-container transition-colors cursor-pointer text-center"
               >
-                <Navigation className="w-3.5 h-3.5" />
-                <span>Go to Space Now</span>
+                View Details
               </button>
-            )}
-
-            <button
-              onClick={onOpenFinder}
-              className="text-[11px] text-on-surface-variant hover:text-primary transition-colors text-center py-1 font-inter flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <SlidersHorizontal className="w-3 h-3" />
-              <span>Adjust My Space Preferences</span>
-            </button>
+              <button
+                onClick={() => onNotify(location)}
+                className="p-2 rounded-xl bg-surface-container-high hover:bg-surface-bright text-on-surface border border-primary-container transition-colors cursor-pointer"
+                title="Watch this space"
+              >
+                <Eye className="w-4 h-4 text-tertiary" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

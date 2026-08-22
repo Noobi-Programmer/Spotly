@@ -6,54 +6,42 @@ import { CampusId } from '@/types';
 import {
   Sparkles,
   Bell,
-  Sliders,
-  Layout,
-  Compass,
-  BookOpen,
-  UtensilsCrossed,
-  Trophy,
+  SlidersHorizontal,
+  LogIn,
   User,
+  Compass,
+  Home,
+  MapPin,
+  Flame,
 } from 'lucide-react';
 
 interface HeaderProps {
   onOpenActiveAlerts: () => void;
+  activeAlertCount: number;
+  onSelectCategoryNav?: (cat: 'all' | 'study' | 'food' | 'sports') => void;
   showLanding?: boolean;
   onToggleLanding?: () => void;
-  onSelectCategoryNav?: (cat: 'study' | 'food' | 'sports') => void;
-  onOpenLogin?: () => void;
+  onOpenLoginModal?: () => void;
   currentUser?: string | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenActiveAlerts,
+  activeAlertCount,
+  onSelectCategoryNav,
   showLanding = false,
   onToggleLanding,
-  onSelectCategoryNav,
-  onOpenLogin,
+  onOpenLoginModal,
   currentUser,
 }) => {
   const {
     selectedCampus,
     setSelectedCampus,
-    selectedCategory,
-    setSelectedCategory,
-    alerts,
     setIsFindModalOpen,
-    isSimulatorOpen,
     setIsSimulatorOpen,
+    activeTab,
+    setActiveTab,
   } = useCampusStore();
-
-  const activeAlertCount = alerts.filter((a) => a.is_active).length;
-
-  const handleNavCategory = (cat: 'study' | 'food' | 'sports') => {
-    setSelectedCategory(cat);
-    if (onSelectCategoryNav) {
-      onSelectCategoryNav(cat);
-    }
-    if (showLanding && onToggleLanding) {
-      onToggleLanding(); // Automatically enter the live app view with this category filter active!
-    }
-  };
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-primary-container bg-surface-container-low/95 backdrop-blur-md">
@@ -62,7 +50,8 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
-              if (!showLanding && onToggleLanding) onToggleLanding();
+              setActiveTab('cards');
+              if (showLanding && onToggleLanding) onToggleLanding();
             }}
             className="flex items-center gap-2.5 text-left cursor-pointer focus:outline-none"
           >
@@ -92,73 +81,72 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center Category Filter Links */}
+        {/* 4 Core Pillars Navigation */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-inter">
           <button
-            onClick={() => handleNavCategory('study')}
-            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-2 ${
-              !showLanding && selectedCategory === 'study'
-                ? 'text-primary border-primary shadow-sm font-bold'
+            onClick={() => {
+              setActiveTab('cards');
+              if (showLanding && onToggleLanding) onToggleLanding();
+            }}
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+              !showLanding && activeTab === 'cards'
+                ? 'text-primary border-primary font-bold'
                 : 'text-on-surface-variant hover:text-on-surface border-transparent'
             }`}
           >
-            <BookOpen className={`w-4 h-4 ${!showLanding && selectedCategory === 'study' ? 'text-primary' : 'text-on-surface-variant'}`} />
-            <span>Study Spaces</span>
+            <Home className="w-4 h-4" />
+            <span>Home</span>
           </button>
 
           <button
-            onClick={() => handleNavCategory('food')}
-            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-2 ${
-              !showLanding && selectedCategory === 'food'
-                ? 'text-tertiary border-tertiary shadow-sm font-bold'
+            onClick={() => {
+              setActiveTab('map');
+              if (showLanding && onToggleLanding) onToggleLanding();
+            }}
+            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-1.5 ${
+              !showLanding && activeTab === 'map'
+                ? 'text-primary border-primary font-bold'
                 : 'text-on-surface-variant hover:text-on-surface border-transparent'
             }`}
           >
-            <UtensilsCrossed className={`w-4 h-4 ${!showLanding && selectedCategory === 'food' ? 'text-tertiary' : 'text-on-surface-variant'}`} />
-            <span>Food &amp; Queues</span>
+            <Compass className="w-4 h-4" />
+            <span>Explore Map</span>
           </button>
 
           <button
-            onClick={() => handleNavCategory('sports')}
-            className={`font-sora text-xs sm:text-sm font-semibold transition-all cursor-pointer py-1 border-b-2 flex items-center gap-2 ${
-              !showLanding && selectedCategory === 'sports'
-                ? 'text-secondary border-secondary shadow-sm font-bold'
-                : 'text-on-surface-variant hover:text-on-surface border-transparent'
-            }`}
+            onClick={() => setIsFindModalOpen(true)}
+            className="font-sora text-xs sm:text-sm font-semibold text-tertiary hover:text-tertiary-fixed transition-all cursor-pointer py-1 border-b-2 border-transparent flex items-center gap-1.5"
           >
-            <Trophy className={`w-4 h-4 ${!showLanding && selectedCategory === 'sports' ? 'text-secondary' : 'text-on-surface-variant'}`} />
-            <span>Sports &amp; Courts</span>
+            <Sparkles className="w-4 h-4 text-tertiary" />
+            <span>Find My Space</span>
+          </button>
+
+          <button
+            onClick={onOpenActiveAlerts}
+            className="font-sora text-xs sm:text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-all cursor-pointer py-1 border-b-2 border-transparent flex items-center gap-1.5"
+          >
+            <Bell className="w-4 h-4" />
+            <span>Watch Alerts</span>
+            {activeAlertCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-error text-on-error text-[10px] font-mono font-bold">
+                {activeAlertCount}
+              </span>
+            )}
           </button>
         </nav>
 
         {/* Right CTA Actions */}
         <div className="flex items-center gap-2.5">
-          {/* Landing / App Mode Toggle */}
-          {onToggleLanding && (
-            <button
-              onClick={onToggleLanding}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-sora font-semibold border transition-all cursor-pointer ${
-                !showLanding
-                  ? 'bg-primary-container text-on-primary-container border-primary'
-                  : 'bg-surface-container text-on-surface-variant hover:text-on-surface border-primary-container'
-              }`}
-            >
-              {!showLanding ? <Compass className="w-3.5 h-3.5 text-primary" /> : <Layout className="w-3.5 h-3.5 text-tertiary" />}
-              <span>{!showLanding ? 'Overview' : 'Live Spaces'}</span>
-            </button>
-          )}
-
-          {/* Open App / Find My Space Pill */}
+          {/* Find My Space Hero Button */}
           <button
             onClick={() => setIsFindModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-tertiary hover:bg-tertiary-fixed text-on-tertiary font-sora font-bold text-xs sm:text-sm shadow-md shadow-tertiary/20 transition-all active:scale-95 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Find My Space</span>
-            <span className="sm:hidden">Find</span>
+            <span>Find My Space</span>
           </button>
 
-          {/* Active Alerts Button */}
+          {/* Active Alerts Bell */}
           <button
             onClick={onOpenActiveAlerts}
             className="relative p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-primary-container transition-colors cursor-pointer"
@@ -173,30 +161,30 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Sign In / Student Profile Button */}
-          {onOpenLogin && (
+          {/* User Sign In / Profile */}
+          {currentUser ? (
+            <div className="flex items-center gap-2 py-1.5 px-3 rounded-xl bg-surface-container border border-primary-container text-xs font-inter text-primary font-semibold">
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline max-w-[100px] truncate">{currentUser.split('@')[0]}</span>
+            </div>
+          ) : (
             <button
-              onClick={onOpenLogin}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container hover:bg-surface-bright text-xs font-sora font-semibold text-on-surface border border-primary-container transition-all cursor-pointer"
-              title="Sign in with SST Email"
+              onClick={onOpenLoginModal}
+              className="flex items-center gap-1.5 py-2 px-3.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-sora font-semibold border border-primary-container transition-colors cursor-pointer"
             >
-              <User className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">{currentUser ? currentUser.split('@')[0] : 'Sign In'}</span>
+              <LogIn className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Sign In</span>
             </button>
           )}
 
-          {/* Demo Simulator Toggle */}
+          {/* Stealth Demo Simulator Button (Backstage Hackathon Magic) */}
           <button
-            onClick={() => setIsSimulatorOpen(!isSimulatorOpen)}
-            className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-              isSimulatorOpen
-                ? 'bg-tertiary-container text-on-tertiary-container border-tertiary shadow-sm'
-                : 'bg-surface-container hover:bg-surface-container-high text-on-surface-variant border-primary-container'
-            }`}
-            title="Toggle Live Demo Simulator"
+            onClick={() => setIsSimulatorOpen(true)}
+            className="p-2 rounded-xl bg-surface-container/60 hover:bg-surface-container text-on-surface-variant hover:text-tertiary border border-primary-container/40 transition-colors cursor-pointer"
+            title="Demo Simulator (Backstage Trigger)"
+            aria-label="Demo Simulator"
           >
-            <Sliders className="w-3.5 h-3.5 text-tertiary" />
-            <span className="hidden xl:inline">Demo</span>
+            <SlidersHorizontal className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
