@@ -23,6 +23,7 @@ import confetti from 'canvas-confetti';
 
 import { SportsBookingModal } from './SportsBookingModal';
 import { createSeatBookingInDb, cancelSeatBookingInDb } from '@/lib/supabase/client';
+import { useCampusStore } from '@/lib/store/useCampusStore';
 
 interface SeatBookingModalProps {
   location: CampusLocation | null;
@@ -35,6 +36,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { setActiveTicket, setIsTicketModalOpen } = useCampusStore();
   if (location?.category === 'sports') {
     return <SportsBookingModal location={location} isOpen={isOpen} onClose={onClose} />;
   }
@@ -120,18 +122,26 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
   const handleConfirmBooking = async () => {
     if (!selectedSeat) return;
 
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const booking: SeatBooking = {
       id: `booking-${Date.now()}`,
+      ticket_code: `SPT-${randomSuffix}-SST`,
       location_id: location.id,
       location_name: location.name,
       location_floor: location.floor,
+      location_building: location.building,
       seat_number: selectedSeat.serial_number,
       table_number: selectedSeat.table_number,
+      user_name: 'Abinivesh (SST)',
+      user_email: 'student@sst.scaler.com',
       booked_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      booked_timestamp: Date.now(),
       expires_in_minutes: durationHours * 60,
+      status: 'active',
     };
 
     setActiveBooking(booking);
+    setActiveTicket(booking);
 
     try {
       await createSeatBookingInDb({
@@ -410,13 +420,26 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
                 </div>
               </div>
 
-              <button
-                onClick={handleCancelBooking}
-                className="flex items-center gap-1 text-xs text-error hover:text-on-surface transition-colors cursor-pointer self-end sm:self-auto"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Cancel Seat</span>
-              </button>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTicketModalOpen(true);
+                    onClose();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary text-xs font-sora font-bold shadow-sm transition-all cursor-pointer"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>View E-Ticket</span>
+                </button>
+                <button
+                  onClick={handleCancelBooking}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-error/15 hover:bg-error/25 text-error text-xs font-sora font-semibold transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Cancel</span>
+                </button>
+              </div>
             </div>
           ) : selectedSeat ? (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 animate-in fade-in">

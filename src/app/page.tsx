@@ -12,6 +12,7 @@ import { LocationPermissionBanner } from '@/components/layout/LocationPermission
 import { BlockWiseSpaceView } from '@/components/spaces/BlockWiseSpaceView';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
 import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
+import { CampusTicketModal } from '@/components/booking/CampusTicketModal';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { CampusMap } from '@/components/map/CampusMap';
 import { FindSpaceModal } from '@/components/recommendation/FindSpaceModal';
@@ -61,6 +62,10 @@ export default function CampusSpaceApp() {
     setIsNotifyModalOpen,
     isSimulatorOpen,
     setIsSimulatorOpen,
+    activeTicket,
+    setActiveTicket,
+    isTicketModalOpen,
+    setIsTicketModalOpen,
     activeTab,
     setActiveTab,
     filterType,
@@ -409,6 +414,22 @@ export default function CampusSpaceApp() {
         location={targetBookingLocation}
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
+      />
+
+      {/* Spotly Campus Digital E-Ticket & Pass Modal */}
+      <CampusTicketModal
+        ticket={activeTicket}
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+        onCancelTicket={(id) => {
+          setActiveTicket(null);
+        }}
+        onGoToSpace={() => {
+          if (activeTicket) {
+            const loc = currentCampusLocations.find((l) => l.id === activeTicket.location_id);
+            if (loc) setSelectedLocation(loc);
+          }
+        }}
       />
 
       {/* Spotly Auth Login Modal */}

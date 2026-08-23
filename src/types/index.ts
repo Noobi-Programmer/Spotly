@@ -38,13 +38,20 @@ export interface SeatInfo {
 
 export interface SeatBooking {
   id: string;
+  ticket_code: string; // e.g. 'SPT-8942-SST'
   location_id: string;
   location_name: string;
   location_floor: string;
+  location_building?: string;
   seat_number: string;
   table_number: number;
+  user_name?: string;
+  user_email?: string;
   booked_at: string;
+  booked_timestamp: number; // for real-time second-by-second countdown
   expires_in_minutes: number;
+  status: 'active' | 'expired' | 'cancelled';
+  qr_data?: string;
 }
 
 export interface CampusLocation {

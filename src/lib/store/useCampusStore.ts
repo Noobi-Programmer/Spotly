@@ -9,6 +9,7 @@ import {
   CampusId,
   CampusResourceCategory,
   CrowdTrend,
+  SeatBooking,
 } from '@/types';
 import { INITIAL_CAMPUS_LOCATIONS } from '@/lib/supabase/seed-data';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
@@ -26,6 +27,7 @@ const BROADCAST_CHANNEL_NAME = 'spotly_realtime_channel';
 // In-memory global store to share state across components in the same tab
 let globalLocations: CampusLocation[] = [...INITIAL_CAMPUS_LOCATIONS];
 let globalAlerts: SpaceWatch[] = [];
+let globalActiveTicket: SeatBooking | null = null;
 let globalListeners: Set<() => void> = new Set();
 let broadcastChannel: BroadcastChannel | null = null;
 
@@ -56,6 +58,7 @@ export function useCampusStore() {
   const [isFindModalOpen, setIsFindModalOpen] = useState(false);
   const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'cards' | 'map'>('cards');
   const [filterType, setFilterType] = useState<SpaceType | 'all'>('all');
   const [filterQuietOnly, setFilterQuietOnly] = useState(false);
@@ -422,6 +425,13 @@ export function useCampusStore() {
     setIsNotifyModalOpen,
     isSimulatorOpen,
     setIsSimulatorOpen,
+    activeTicket: globalActiveTicket,
+    setActiveTicket: (t: SeatBooking | null) => {
+      globalActiveTicket = t;
+      notifyGlobalListeners();
+    },
+    isTicketModalOpen,
+    setIsTicketModalOpen,
     activeTab,
     setActiveTab,
     filterType,
