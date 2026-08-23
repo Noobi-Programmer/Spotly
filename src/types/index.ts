@@ -84,8 +84,8 @@ export interface CampusLocation {
 
   // P2 Resource extensions (Food & Sports)
   wait_time_minutes?: number; // e.g. 4 for Chef Talk
-  mess_provider?: 'Cheftalk' | 'The Craving Brew';
-  meal_type?: 'Daily Mess Meal' | 'Veg' | 'Non-Veg' | 'Jain' | 'Alternate Mess Meal' | 'Special Thali & Meals';
+  mess_provider?: 'Cheftalk' | 'The Craving Brew' | 'Uniworld';
+  meal_type?: 'Daily Mess Meal' | 'Veg' | 'Non-Veg' | 'Jain' | 'Alternate Mess Meal' | 'Special Thali & Meals' | 'Uniworld Student Meal';
   equipment_items?: { name: string; available: number; total: number }[];
 
   created_at?: string;
@@ -103,6 +103,8 @@ export interface UserPreferences {
   type?: SpaceType | 'all';
   max_distance?: number; // minutes
   floor?: string | 'all';
+  food_preference?: 'all' | 'cheftalk' | 'jain' | 'uniworld' | 'craving_brew';
+  fast_queue_only?: boolean;
 }
 
 export interface RecommendationResult {

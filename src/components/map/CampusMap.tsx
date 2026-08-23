@@ -53,7 +53,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
         } else if (mapFloor === 'Upper Basement') {
           if (loc.category === 'food') {
             const foodIdx = floorLocs.filter((fl) => fl.category === 'food').indexOf(loc);
-            x = 220 + foodIdx * 280;
+            x = 140 + foodIdx * 240;
             y = 190;
           } else {
             x = 500;
@@ -92,7 +92,7 @@ export const CampusMap: React.FC<CampusMapProps> = ({
     // Lane 4: Upper Basement (y: 475)
     const fb = locations.filter((l) => l.floor === 'Upper Basement');
     fb.forEach((loc, i) => {
-      allNodes.push({ ...loc, renderX: 160 + i * 230, renderY: 475, cardW: 175, cardH: 80 });
+      allNodes.push({ ...loc, renderX: 130 + i * 185, renderY: 475, cardW: 165, cardH: 80 });
     });
 
     return allNodes;

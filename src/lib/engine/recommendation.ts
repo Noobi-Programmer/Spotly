@@ -145,7 +145,45 @@ export function rankSpaces(
       }
     }
 
-    // 6. Proximity / Walking Distance
+    // 6. Food & Mess Specific Preferences (Jain, Uniworld, Cheftalk, Fast Queues)
+    if (loc.category === 'food') {
+      if (preferences.food_preference === 'jain') {
+        if (loc.meal_type === 'Jain') {
+          score += 40;
+          reasons.push('100% Pure Jain food counter (No onion/garlic/potatoes)');
+        } else {
+          score -= 35;
+        }
+      } else if (preferences.food_preference === 'uniworld') {
+        if (loc.mess_provider === 'Uniworld') {
+          score += 40;
+          reasons.push('Uniworld Dining & Mess (Campus Partner Thali & Buffet)');
+        } else {
+          score -= 25;
+        }
+      } else if (preferences.food_preference === 'cheftalk') {
+        if (loc.mess_provider === 'Cheftalk' && loc.meal_type !== 'Jain') {
+          score += 40;
+          reasons.push('Cheftalk Main Primary Mess (Daily Student Meals)');
+        } else {
+          score -= 20;
+        }
+      } else if (preferences.food_preference === 'craving_brew') {
+        if (loc.mess_provider === 'The Craving Brew') {
+          score += 40;
+          reasons.push('The Craving Brew (Alternate Mess Provider)');
+        } else {
+          score -= 20;
+        }
+      }
+
+      if (loc.wait_time_minutes && loc.wait_time_minutes <= 4) {
+        score += 10;
+        reasons.push(`⚡ Fast token queue (~${loc.wait_time_minutes} min wait)`);
+      }
+    }
+
+    // 7. Proximity / Walking Distance
     let effectiveMinutes = loc.distance_minutes;
     if (userCoordinates && loc.latitude && loc.longitude) {
       const distMeters = calculateHaversineDistanceMeters(
