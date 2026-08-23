@@ -36,7 +36,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { setActiveTicket, setIsTicketModalOpen } = useCampusStore();
+  const { addTicket, setActiveTicket, setIsTicketModalOpen } = useCampusStore();
   if (location?.category === 'sports') {
     return <SportsBookingModal location={location} isOpen={isOpen} onClose={onClose} />;
   }
@@ -141,7 +141,7 @@ export const SeatBookingModal: React.FC<SeatBookingModalProps> = ({
     };
 
     setActiveBooking(booking);
-    setActiveTicket(booking);
+    addTicket(booking);
 
     try {
       await createSeatBookingInDb({

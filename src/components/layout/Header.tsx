@@ -40,11 +40,14 @@ export const Header: React.FC<HeaderProps> = ({
     setSelectedCampus,
     setIsFindModalOpen,
     setIsSimulatorOpen,
+    tickets = [],
     activeTicket,
     setIsTicketModalOpen,
     activeTab,
     setActiveTab,
   } = useCampusStore();
+
+  const totalNotificationsCount = activeAlertCount + tickets.length;
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-primary-container bg-surface-container-low/95 backdrop-blur-md">
@@ -129,10 +132,10 @@ export const Header: React.FC<HeaderProps> = ({
             className="font-sora text-xs sm:text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-all cursor-pointer py-1 border-b-2 border-transparent flex items-center gap-1.5"
           >
             <Bell className="w-4 h-4" />
-            <span>Watch Alerts</span>
-            {activeAlertCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-error text-on-error text-[10px] font-mono font-bold">
-                {activeAlertCount}
+            <span>Passes &amp; Watches</span>
+            {totalNotificationsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-primary text-on-primary text-[10px] font-mono font-bold">
+                {totalNotificationsCount}
               </span>
             )}
           </button>
@@ -162,17 +165,17 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Find My Space</span>
           </button>
 
-          {/* Active Alerts Bell */}
+          {/* Active Alerts & Passes Bell */}
           <button
             onClick={onOpenActiveAlerts}
             className="relative p-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-primary-container transition-colors cursor-pointer"
-            title="My Watches"
-            aria-label="My Watches"
+            title="My Passes & Watches"
+            aria-label="My Passes & Watches"
           >
             <Bell className="w-4 h-4" />
-            {activeAlertCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-error text-on-error text-[10px] font-bold flex items-center justify-center animate-pulse">
-                {activeAlertCount}
+            {totalNotificationsCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center animate-pulse">
+                {totalNotificationsCount}
               </span>
             )}
           </button>

@@ -17,9 +17,12 @@ import {
   Zap,
   Plus,
   Minus,
+  QrCode,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { createSportsBookingInDb } from '@/lib/supabase/client';
+import { useCampusStore } from '@/lib/store/useCampusStore';
+import { SeatBooking } from '@/types';
 
 interface SportsBookingModalProps {
   location: CampusLocation | null;
@@ -32,6 +35,7 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { addTicket, setIsTicketModalOpen } = useCampusStore();
   const [selectedSlot, setSelectedSlot] = useState<string>('Full Court / Pitch');
   const [selectedGear, setSelectedGear] = useState<{ [gearName: string]: number }>({});
   const [durationMinutes, setDurationMinutes] = useState<number>(45);
@@ -124,13 +128,33 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
       ([gear, count]) => `${count}x ${gear}`
     );
 
-    setActiveBooking({
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const sportsBookingTicket: SeatBooking = {
       id: `sports-pass-${Date.now()}`,
+      ticket_code: `SPT-SPORTS-${randomSuffix}`,
+      location_id: location.id,
+      location_name: location.name,
+      location_floor: location.floor,
+      location_building: location.building,
+      seat_number: selectedSlot,
+      table_number: 1,
+      user_name: 'Abinivesh (SST)',
+      user_email: 'student@sst.scaler.com',
+      booked_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      booked_timestamp: Date.now(),
+      expires_in_minutes: durationMinutes,
+      status: 'active',
+    };
+
+    setActiveBooking({
+      id: sportsBookingTicket.id,
       slot: selectedSlot,
       gearList: gearStrings.length > 0 ? gearStrings : ['No extra gear requested'],
-      bookedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      bookedAt: sportsBookingTicket.booked_at,
       duration: durationMinutes,
     });
+
+    addTicket(sportsBookingTicket);
 
     try {
       await createSportsBookingInDb({
@@ -348,13 +372,26 @@ export const SportsBookingModal: React.FC<SportsBookingModalProps> = ({
                 </div>
               </div>
 
-              <button
-                onClick={() => setActiveBooking(null)}
-                className="flex items-center gap-1 text-xs text-error hover:text-on-surface transition-colors cursor-pointer self-end sm:self-auto"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Cancel Pass</span>
-              </button>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTicketModalOpen(true);
+                    onClose();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tertiary hover:bg-tertiary-fixed text-on-tertiary text-xs font-sora font-bold shadow-sm transition-all cursor-pointer"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>View E-Ticket</span>
+                </button>
+                <button
+                  onClick={() => setActiveBooking(null)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-error/15 hover:bg-error/25 text-error text-xs font-sora font-semibold transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Cancel</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">

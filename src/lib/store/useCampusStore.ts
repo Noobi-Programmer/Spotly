@@ -27,6 +27,7 @@ const BROADCAST_CHANNEL_NAME = 'spotly_realtime_channel';
 // In-memory global store to share state across components in the same tab
 let globalLocations: CampusLocation[] = [...INITIAL_CAMPUS_LOCATIONS];
 let globalAlerts: SpaceWatch[] = [];
+let globalTickets: SeatBooking[] = [];
 let globalActiveTicket: SeatBooking | null = null;
 let globalListeners: Set<() => void> = new Set();
 let broadcastChannel: BroadcastChannel | null = null;
@@ -425,7 +426,20 @@ export function useCampusStore() {
     setIsNotifyModalOpen,
     isSimulatorOpen,
     setIsSimulatorOpen,
+    tickets: globalTickets,
     activeTicket: globalActiveTicket,
+    addTicket: (t: SeatBooking) => {
+      globalTickets = [t, ...globalTickets.filter((item) => item.id !== t.id)];
+      globalActiveTicket = t;
+      notifyGlobalListeners();
+    },
+    removeTicket: (ticketId: string) => {
+      globalTickets = globalTickets.filter((item) => item.id !== ticketId);
+      if (globalActiveTicket?.id === ticketId) {
+        globalActiveTicket = globalTickets.length > 0 ? globalTickets[0] : null;
+      }
+      notifyGlobalListeners();
+    },
     setActiveTicket: (t: SeatBooking | null) => {
       globalActiveTicket = t;
       notifyGlobalListeners();
