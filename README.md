@@ -204,7 +204,7 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ## 👥 8. Team Spark — Scaler School of Technology
 * **Abinivesh** ([@Noobi-Programmer](https://github.com/Noobi-Programmer))
-* **Khwahish**
-* **Urmi**
+* **Khwahish** ([@khwahish-r](https://github.com/khwahish-r))
+* **Urmi** ([@urmibarman](https://github.com/urmibarman))
 
 *Built with passion at SST Electronic City, Bangalore for Gradient Rush Hackathon 2026.* 🌿
