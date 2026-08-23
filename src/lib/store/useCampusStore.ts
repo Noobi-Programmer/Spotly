@@ -193,44 +193,6 @@ export function useCampusStore() {
     };
   }, [evaluateAlertsLocally]);
 
-  // Supabase real-time sync if configured
-  useEffect(() => {
-    if (!isSupabaseConfigured() || !supabase) return;
-
-    // Fetch initial data from Supabase
-    supabase
-      .from('locations')
-      .select('*')
-      .then(({ data, error }) => {
-        if (data && data.length > 0 && !error) {
-          globalLocations = data as CampusLocation[];
-          notifyGlobalListeners();
-        }
-      });
-
-    // Subscribe to Postgres changes
-    const channel = supabase
-      .channel('spotly-realtime-public')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'locations' },
-        (payload) => {
-          const updated = payload.new as CampusLocation;
-          const idx = globalLocations.findIndex((l) => l.id === updated.id);
-          if (idx !== -1) {
-            globalLocations[idx] = updated;
-            evaluateAlertsLocally(updated);
-            notifyGlobalListeners();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase?.removeChannel(channel);
-    };
-  }, [evaluateAlertsLocally]);
-
   // Update occupancy action
   const updateOccupancy = useCallback(
     async (locationId: string, newOccupancy: number) => {

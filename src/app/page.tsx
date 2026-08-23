@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { useSupabaseRealtime } from '@/lib/supabase/useSupabaseRealtime';
 import { getActiveUserSession } from '@/lib/supabase/client';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 export default function CampusSpaceApp() {
   const {
@@ -177,7 +178,8 @@ export default function CampusSpaceApp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary pb-16 md:pb-0">
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col bg-surface text-on-surface selection:bg-tertiary selection:text-on-tertiary pb-16 md:pb-0">
       {/* Top Navigation Bar */}
       <Header
         onOpenActiveAlerts={() => setIsActiveAlertsDrawerOpen(true)}
@@ -511,5 +513,6 @@ export default function CampusSpaceApp() {
         </div>
       </footer>
     </div>
+  </ErrorBoundary>
   );
 }
