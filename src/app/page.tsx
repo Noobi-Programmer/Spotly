@@ -421,8 +421,16 @@ export default function CampusSpaceApp() {
         isOpen={isFindModalOpen}
         onClose={() => setIsFindModalOpen(false)}
         locations={currentCampusLocations}
-        onApplyPreferences={(prefs) => setUserPreferences(prefs)}
+        onApplyPreferences={(prefs) => {
+          setUserPreferences(prefs);
+          if (prefs.category && prefs.category !== 'all') {
+            setSelectedCategory(prefs.category);
+          }
+          setShowLanding(false);
+        }}
         onSelectRecommendedLocation={(loc) => {
+          setShowLanding(false);
+          setSelectedCategory(loc.category);
           setSelectedLocation(loc);
           setIsFindModalOpen(false);
         }}

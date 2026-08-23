@@ -94,7 +94,7 @@ export function rankSpaces(
       };
     }
 
-    let score = 25; // Base score
+    let score = 35; // Base score
 
     // 1. SAFETY: Full Space Handling (Rule 11)
     if (!isAvailable) {
@@ -107,83 +107,106 @@ export function rankSpaces(
       const crowdScore = Math.round(35 * Math.max(0, 1 - occRatio));
       score += crowdScore;
       if (occPct <= 40) {
-        reasons.push(`Low crowd right now (${occPct}% occupied, ${availableSeats} seats free)`);
+        reasons.push(`Low crowd (${occPct}% occupied, ${availableSeats} seats free)`);
       } else if (occPct <= 70) {
         reasons.push(`Moderate crowd (${occPct}% occupied)`);
       }
     } else {
-      score += Math.round(15 * Math.max(0, 1 - occRatio));
-    }
-
-    // 3. Quiet Environment scoring (Max 25 pts)
-    if (preferences.quiet) {
-      if (loc.is_quiet) {
-        score += 25;
-        reasons.push(`Quiet zone verified (${loc.noise_level} environment)`);
-      } else {
-        score -= 20;
-      }
-    } else if (loc.is_quiet) {
-      score += 10;
-    }
-
-    // 4. Power Charging Outlet scoring (Max 20 pts)
-    if (preferences.charging) {
-      if (loc.has_charging) {
-        score += 20;
-        reasons.push('Power outlets available at desks');
-      } else {
-        score -= 15;
+      score += Math.round(20 * Math.max(0, 1 - occRatio));
+      if (occPct <= 50) {
+        reasons.push(`${availableSeats} free seats available`);
       }
     }
 
-    // 5. Gigabit Wi-Fi scoring (Max 15 pts)
-    if (preferences.wifi) {
-      if (loc.has_fast_wifi) {
-        score += 15;
-        reasons.push('High-speed campus Wi-Fi');
+    // 3. Category-Specific Criteria
+    if (loc.category === 'study') {
+      // Quiet Environment scoring
+      if (preferences.quiet) {
+        if (loc.is_quiet) {
+          score += 25;
+          reasons.push(`Quiet zone verified (${loc.noise_level} environment)`);
+        } else {
+          score -= 15;
+        }
+      } else if (loc.is_quiet) {
+        score += 10;
       }
-    }
 
-    // 6. Food & Mess Specific Preferences (Jain, Uniworld, Cheftalk, Fast Queues)
-    if (loc.category === 'food') {
+      // Power Charging Outlet scoring
+      if (preferences.charging) {
+        if (loc.has_charging) {
+          score += 20;
+          reasons.push('Power outlets available at desks');
+        } else {
+          score -= 10;
+        }
+      }
+
+      // Gigabit Wi-Fi scoring
+      if (preferences.wifi) {
+        if (loc.has_fast_wifi) {
+          score += 15;
+          reasons.push('High-speed campus Wi-Fi');
+        }
+      }
+    } else if (loc.category === 'food') {
+      // Food / Mess specific matching
       if (preferences.food_preference === 'jain') {
         if (loc.meal_type === 'Jain') {
-          score += 40;
+          score += 45;
           reasons.push('100% Pure Jain food counter (No onion/garlic/potatoes)');
         } else {
-          score -= 35;
+          score -= 40;
         }
       } else if (preferences.food_preference === 'uniworld') {
         if (loc.mess_provider === 'Uniworld') {
-          score += 40;
+          score += 45;
           reasons.push('Uniworld Dining & Mess (Campus Partner Thali & Buffet)');
         } else {
           score -= 25;
         }
       } else if (preferences.food_preference === 'cheftalk') {
         if (loc.mess_provider === 'Cheftalk' && loc.meal_type !== 'Jain') {
-          score += 40;
+          score += 45;
           reasons.push('Cheftalk Main Primary Mess (Daily Student Meals)');
         } else {
           score -= 20;
         }
       } else if (preferences.food_preference === 'craving_brew') {
         if (loc.mess_provider === 'The Craving Brew') {
-          score += 40;
+          score += 45;
           reasons.push('The Craving Brew (Alternate Mess Provider)');
         } else {
           score -= 20;
         }
+      } else {
+        // All mess providers open
+        if (loc.mess_provider === 'Uniworld') {
+          reasons.push('Uniworld campus student dining partner');
+        } else if (loc.meal_type === 'Jain') {
+          reasons.push('Dedicated Jain pure vegetarian counter');
+        } else if (loc.mess_provider === 'Cheftalk') {
+          reasons.push('Primary student daily meal mess');
+        } else if (loc.mess_provider === 'The Craving Brew') {
+          reasons.push('Alternate student thalis & meal provider');
+        }
       }
 
       if (loc.wait_time_minutes && loc.wait_time_minutes <= 4) {
-        score += 10;
+        score += 15;
         reasons.push(`⚡ Fast token queue (~${loc.wait_time_minutes} min wait)`);
+      }
+    } else if (loc.category === 'sports') {
+      if (loc.equipment_items && loc.equipment_items.length > 0) {
+        score += 25;
+        reasons.push(`${loc.equipment_items[0].available} ${loc.equipment_items[0].name.toLowerCase()} available in locker`);
+      }
+      if (isAvailable) {
+        reasons.push('Court / Pitch open for match & practice');
       }
     }
 
-    // 7. Proximity / Walking Distance
+    // 4. Proximity / Walking Distance
     let effectiveMinutes = loc.distance_minutes;
     if (userCoordinates && loc.latitude && loc.longitude) {
       const distMeters = calculateHaversineDistanceMeters(
@@ -217,13 +240,13 @@ export function rankSpaces(
     }
 
     const finalScore = isAvailable
-      ? Math.min(99, Math.max(10, Math.round(score)))
-      : Math.min(30, Math.max(5, Math.round(score)));
+      ? Math.min(99, Math.max(15, Math.round(score)))
+      : Math.max(0, Math.min(40, Math.round(score)));
 
     return {
       location: loc,
       matchScore: finalScore,
-      reasons,
+      reasons: Array.from(new Set(reasons)).slice(0, 4),
       crowdStatus: tier,
       occupancyPercentage: occPct,
       availableSeats,
@@ -231,6 +254,6 @@ export function rankSpaces(
     };
   });
 
-  // Sort descending by matchScore (available spaces naturally rank highest)
+  // Sort descending by match score
   return results.sort((a, b) => b.matchScore - a.matchScore);
 }

@@ -83,7 +83,12 @@ export const FindSpaceModal: React.FC<FindSpaceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-surface-container-lowest/85 backdrop-blur-md animate-in fade-in duration-200">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-surface-container-lowest/85 backdrop-blur-md animate-in fade-in duration-200"
+    >
       <div className="relative w-full max-w-2xl rounded-3xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-5 sm:p-8 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Close Button */}
         <button
