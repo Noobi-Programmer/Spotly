@@ -29,6 +29,29 @@ let globalLocations: CampusLocation[] = [...INITIAL_CAMPUS_LOCATIONS];
 let globalAlerts: SpaceWatch[] = [];
 let globalTickets: SeatBooking[] = [];
 let globalActiveTicket: SeatBooking | null = null;
+let globalSelectedCampus: CampusId = 'sst_bangalore';
+let globalSelectedCategory: CampusResourceCategory | 'all' = 'all';
+let globalSelectedFloor: string = 'all';
+let globalSelectedLocation: CampusLocation | null = null;
+let globalIsFindModalOpen = false;
+let globalIsNotifyModalOpen = false;
+let globalIsSimulatorOpen = false;
+let globalIsTicketModalOpen = false;
+let globalActiveTab: 'cards' | 'map' = 'cards';
+let globalFilterType: SpaceType | 'all' = 'all';
+let globalFilterQuietOnly = false;
+let globalFilterChargingOnly = false;
+let globalUserPreferences: UserPreferences = {
+  category: 'all',
+  study: true,
+  quiet: false,
+  charging: false,
+  wifi: false,
+  low_crowd: false,
+  nearby: false,
+  type: 'all',
+  floor: 'all',
+};
 let globalListeners: Set<() => void> = new Set();
 let broadcastChannel: BroadcastChannel | null = null;
 
@@ -52,36 +75,11 @@ export function useCampusStore() {
     occupancyPct: number;
   } | null>(null);
 
-  const [selectedCampus, setSelectedCampus] = useState<CampusId>('sst_bangalore');
-  const [selectedCategory, setSelectedCategory] = useState<CampusResourceCategory | 'all'>('all');
-  const [selectedFloor, setSelectedFloor] = useState<string>('all');
-  const [selectedLocation, setSelectedLocation] = useState<CampusLocation | null>(null);
-  const [isFindModalOpen, setIsFindModalOpen] = useState(false);
-  const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
-  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
-  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'cards' | 'map'>('cards');
-  const [filterType, setFilterType] = useState<SpaceType | 'all'>('all');
-  const [filterQuietOnly, setFilterQuietOnly] = useState(false);
-  const [filterChargingOnly, setFilterChargingOnly] = useState(false);
-
   // User Geolocation State
   const [userCoordinates, setUserCoordinates] = useState<UserCoordinates | null>(null);
   const [locationPermissionState, setLocationPermissionState] =
     useState<GeolocationPermissionState>('prompt');
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
-
-  const [userPreferences, setUserPreferences] = useState<UserPreferences>({
-    category: 'all',
-    study: true,
-    quiet: false,
-    charging: false,
-    wifi: false,
-    low_crowd: false,
-    nearby: false,
-    type: 'all',
-    floor: 'all',
-  });
 
   // Re-render when global store changes
   useEffect(() => {
@@ -382,8 +380,8 @@ export function useCampusStore() {
   // Filtered by active campus & optional category
   const currentCampusLocations = globalLocations.filter(
     (l) =>
-      l.campus_id === selectedCampus &&
-      (selectedCategory === 'all' || l.category === selectedCategory)
+      l.campus_id === globalSelectedCampus &&
+      (globalSelectedCategory === 'all' || l.category === globalSelectedCategory)
   );
 
   const totalCapacity = currentCampusLocations.reduce((acc, l) => acc + l.capacity, 0);
@@ -402,12 +400,21 @@ export function useCampusStore() {
   return {
     locations: globalLocations,
     currentCampusLocations,
-    selectedCampus,
-    setSelectedCampus,
-    selectedCategory,
-    setSelectedCategory,
-    selectedFloor,
-    setSelectedFloor,
+    selectedCampus: globalSelectedCampus,
+    setSelectedCampus: (c: CampusId) => {
+      globalSelectedCampus = c;
+      notifyGlobalListeners();
+    },
+    selectedCategory: globalSelectedCategory,
+    setSelectedCategory: (cat: CampusResourceCategory | 'all') => {
+      globalSelectedCategory = cat;
+      notifyGlobalListeners();
+    },
+    selectedFloor: globalSelectedFloor,
+    setSelectedFloor: (f: string) => {
+      globalSelectedFloor = f;
+      notifyGlobalListeners();
+    },
     userCoordinates,
     locationPermissionState,
     isRequestingLocation,
@@ -418,14 +425,26 @@ export function useCampusStore() {
     clearAlertTrigger: () => setActiveAlertTrigger(null),
     campusOccupancyPercentage,
     totalAvailableSeats: Math.max(0, totalCapacity - totalOccupancy),
-    selectedLocation,
-    setSelectedLocation,
-    isFindModalOpen,
-    setIsFindModalOpen,
-    isNotifyModalOpen,
-    setIsNotifyModalOpen,
-    isSimulatorOpen,
-    setIsSimulatorOpen,
+    selectedLocation: globalSelectedLocation,
+    setSelectedLocation: (loc: CampusLocation | null) => {
+      globalSelectedLocation = loc;
+      notifyGlobalListeners();
+    },
+    isFindModalOpen: globalIsFindModalOpen,
+    setIsFindModalOpen: (open: boolean) => {
+      globalIsFindModalOpen = open;
+      notifyGlobalListeners();
+    },
+    isNotifyModalOpen: globalIsNotifyModalOpen,
+    setIsNotifyModalOpen: (open: boolean) => {
+      globalIsNotifyModalOpen = open;
+      notifyGlobalListeners();
+    },
+    isSimulatorOpen: globalIsSimulatorOpen,
+    setIsSimulatorOpen: (open: boolean) => {
+      globalIsSimulatorOpen = open;
+      notifyGlobalListeners();
+    },
     tickets: globalTickets,
     activeTicket: globalActiveTicket,
     addTicket: (t: SeatBooking) => {
@@ -444,18 +463,36 @@ export function useCampusStore() {
       globalActiveTicket = t;
       notifyGlobalListeners();
     },
-    isTicketModalOpen,
-    setIsTicketModalOpen,
-    activeTab,
-    setActiveTab,
-    filterType,
-    setFilterType,
-    filterQuietOnly,
-    setFilterQuietOnly,
-    filterChargingOnly,
-    setFilterChargingOnly,
-    userPreferences,
-    setUserPreferences,
+    isTicketModalOpen: globalIsTicketModalOpen,
+    setIsTicketModalOpen: (open: boolean) => {
+      globalIsTicketModalOpen = open;
+      notifyGlobalListeners();
+    },
+    activeTab: globalActiveTab,
+    setActiveTab: (tab: 'cards' | 'map') => {
+      globalActiveTab = tab;
+      notifyGlobalListeners();
+    },
+    filterType: globalFilterType,
+    setFilterType: (t: SpaceType | 'all') => {
+      globalFilterType = t;
+      notifyGlobalListeners();
+    },
+    filterQuietOnly: globalFilterQuietOnly,
+    setFilterQuietOnly: (q: boolean) => {
+      globalFilterQuietOnly = q;
+      notifyGlobalListeners();
+    },
+    filterChargingOnly: globalFilterChargingOnly,
+    setFilterChargingOnly: (c: boolean) => {
+      globalFilterChargingOnly = c;
+      notifyGlobalListeners();
+    },
+    userPreferences: globalUserPreferences,
+    setUserPreferences: (p: UserPreferences) => {
+      globalUserPreferences = p;
+      notifyGlobalListeners();
+    },
     updateOccupancy,
     submitCrowdReport,
     createAlert,

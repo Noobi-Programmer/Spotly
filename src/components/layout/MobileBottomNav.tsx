@@ -15,12 +15,13 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onSelectTab,
   activeAlertsCount,
 }) => {
-  const { activeTicket, setIsTicketModalOpen } = useCampusStore();
+  const { activeTicket, tickets = [], setIsTicketModalOpen } = useCampusStore();
+  const displayTicket = activeTicket || (tickets.length > 0 ? tickets[0] : null);
 
   return (
     <div className="md:hidden fixed bottom-0 inset-x-0 z-40">
       {/* Floating Active Pass Strip if student has an active reservation */}
-      {activeTicket && (
+      {displayTicket && (
         <div className="px-4 pb-2">
           <button
             onClick={() => setIsTicketModalOpen(true)}
@@ -28,7 +29,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           >
             <div className="flex items-center gap-2">
               <QrCode className="w-4 h-4" />
-              <span>Active Pass: {activeTicket.seat_number} (Table {activeTicket.table_number})</span>
+              <span>Active Pass: {displayTicket.seat_number} (Table {displayTicket.table_number})</span>
             </div>
             <span className="text-[10px] bg-black/30 px-2 py-0.5 rounded-full font-mono">
               TAP TO SHOW QR →

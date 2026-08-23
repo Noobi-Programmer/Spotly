@@ -20,6 +20,8 @@ import {
   Check,
 } from 'lucide-react';
 
+import { useCampusStore } from '@/lib/store/useCampusStore';
+
 interface CampusTicketModalProps {
   ticket: SeatBooking | null;
   isOpen: boolean;
@@ -35,6 +37,9 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
   onCancelTicket,
   onGoToSpace,
 }) => {
+  const { tickets = [], setIsFindModalOpen } = useCampusStore();
+  const displayTicket = ticket || (tickets.length > 0 ? tickets[0] : null);
+
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
     minutes: number;
@@ -46,10 +51,10 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
 
   // Live ticking countdown timer (every 1 second)
   useEffect(() => {
-    if (!ticket) return;
+    if (!displayTicket) return;
 
     const calculateRemaining = () => {
-      const expiresAt = ticket.booked_timestamp + ticket.expires_in_minutes * 60 * 1000;
+      const expiresAt = displayTicket.booked_timestamp + displayTicket.expires_in_minutes * 60 * 1000;
       const diffMs = Math.max(0, expiresAt - Date.now());
       const totalSec = Math.floor(diffMs / 1000);
 
@@ -63,14 +68,52 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
     calculateRemaining();
     const interval = setInterval(calculateRemaining, 1000);
     return () => clearInterval(interval);
-  }, [ticket]);
+  }, [displayTicket]);
 
-  if (!isOpen || !ticket) return null;
+  if (!isOpen) return null;
+
+  if (!displayTicket) {
+    return (
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-surface-container-lowest/85 backdrop-blur-md animate-in fade-in duration-200"
+      >
+        <div className="relative w-full max-w-sm rounded-3xl bg-surface-container-high border-2 border-primary-container shadow-2xl p-6 text-center flex flex-col items-center">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-surface-container hover:bg-surface-container-highest text-on-surface-variant transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+          <div className="w-14 h-14 rounded-2xl bg-primary-container/30 text-primary flex items-center justify-center mb-3">
+            <QrCode className="w-7 h-7" />
+          </div>
+          <h3 className="font-sora text-lg font-bold text-on-surface mb-1">
+            No Active Pass Yet
+          </h3>
+          <p className="font-inter text-xs text-on-surface-variant mb-5 leading-relaxed">
+            Reserve any study seat or sports court to generate your official scannable E-Ticket boarding pass.
+          </p>
+          <button
+            onClick={() => {
+              onClose();
+              setIsFindModalOpen(true);
+            }}
+            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-sora font-bold text-xs shadow-md transition-all cursor-pointer"
+          >
+            Find &amp; Book a Space →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleCopyPass = () => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(
-        `Spotly Campus Pass: ${ticket.location_name} (Table ${ticket.table_number}, Seat ${ticket.seat_number}) - Ticket #${ticket.ticket_code}`
+        `Spotly Campus Pass: ${displayTicket.location_name} (Table ${displayTicket.table_number}, Seat ${displayTicket.seat_number}) - Ticket #${displayTicket.ticket_code}`
       );
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -131,11 +174,11 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
                 RESERVED SPACE
               </span>
               <h2 className="font-sora text-xl font-extrabold text-on-surface leading-tight">
-                {ticket.location_name}
+                {displayTicket.location_name}
               </h2>
               <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-inter mt-1">
                 <MapPin className="w-3.5 h-3.5 text-primary" />
-                <span>{ticket.location_floor} • {ticket.location_building || 'Science & Tech Block'}</span>
+                <span>{displayTicket.location_floor} • {displayTicket.location_building || 'Science & Tech Block'}</span>
               </div>
             </div>
           </div>
@@ -155,7 +198,7 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
                   TABLE NUMBER
                 </span>
                 <span className="font-sora text-2xl sm:text-3xl font-black text-primary">
-                  Table {ticket.table_number}
+                  Table {displayTicket.table_number}
                 </span>
               </div>
 
@@ -164,7 +207,7 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
                   ASSIGNED SEAT
                 </span>
                 <span className="font-sora text-2xl sm:text-3xl font-black text-tertiary">
-                  {ticket.seat_number}
+                  {displayTicket.seat_number}
                 </span>
               </div>
             </div>
@@ -188,15 +231,15 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
              ========================================================================= */}
           <div className="p-6 flex flex-col items-center text-center gap-4 bg-surface-container-high">
             {/* Dynamic Scannable Real QR Code Component with Encrypted URL */}
-            <TicketQRCode ticket={ticket} size={150} />
+            <TicketQRCode ticket={displayTicket} size={150} />
 
             {/* Ticket Ref & Holder Details */}
             <div>
               <div className="font-mono text-xs font-bold text-on-surface tracking-widest uppercase">
-                TICKET #{ticket.ticket_code}
+                TICKET #{displayTicket.ticket_code}
               </div>
               <p className="text-[11px] text-on-surface-variant font-inter mt-0.5">
-                Holder: <strong className="text-on-surface font-semibold">{ticket.user_name || 'Abinivesh (SST)'}</strong> • Booked at {ticket.booked_at}
+                Holder: <strong className="text-on-surface font-semibold">{displayTicket.user_name || 'Abinivesh (SST)'}</strong> • Booked at {displayTicket.booked_at}
               </p>
               <p className="text-[10px] text-primary font-inter mt-1">
                 Show this digital screen to library proctors or campus security upon entry.
@@ -242,7 +285,7 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
           {onCancelTicket && (
             <button
               onClick={() => {
-                onCancelTicket(ticket.id);
+                onCancelTicket(displayTicket.id);
                 onClose();
               }}
               className="py-2.5 px-3 rounded-xl bg-error/15 hover:bg-error/25 text-error text-xs font-sora font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer border border-error/30"

@@ -144,14 +144,16 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right CTA Actions */}
         <div className="flex items-center gap-2.5">
           {/* Active E-Ticket Boarding Pass Pill */}
-          {activeTicket && (
+          {(activeTicket || (tickets && tickets.length > 0)) && (
             <button
               onClick={() => setIsTicketModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-on-primary font-sora font-bold text-xs shadow-md shadow-primary/20 transition-all animate-pulse active:scale-95 cursor-pointer border border-primary-container"
               title="Show Active Campus Pass"
             >
               <QrCode className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Pass: {activeTicket.seat_number}</span>
+              <span className="hidden sm:inline">
+                Pass: {(activeTicket || tickets[0]).seat_number}
+              </span>
               <span className="sm:hidden">Pass</span>
             </button>
           )}
