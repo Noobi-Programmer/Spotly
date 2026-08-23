@@ -99,7 +99,14 @@ export const CampusMap: React.FC<CampusMapProps> = ({
   };
 
   const renderedNodes = getRenderNodes();
-  const filteredList = locations.filter((l) => mapFloor === 'all' || l.floor === mapFloor);
+  const filteredList = locations
+    .filter((l) => mapFloor === 'all' || l.floor === mapFloor)
+    .sort((a, b) => {
+      const idxA = SST_FLOOR_ORDER.indexOf(a.floor);
+      const idxB = SST_FLOOR_ORDER.indexOf(b.floor);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <div className="rounded-3xl bg-surface-container-high border border-primary-container p-5 sm:p-7 relative overflow-hidden flex flex-col gap-6 shadow-xl">

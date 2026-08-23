@@ -74,19 +74,13 @@ export const BlockWiseSpaceView: React.FC<BlockWiseSpaceViewProps> = ({
   // Group active locations Block-Wise and Floor-Wise
   const blocksMap = new Map<string, { blockTitle: string; subtitle: string; floor: string; items: CampusLocation[] }>();
 
-  // Defined Spatial Blocks
+  // Defined Spatial Blocks (Strictly ordered: Basement -> Ground -> Floor 1 -> Floor 2)
   const blockDefinitions = [
     {
-      key: 'Floor 2',
-      title: 'Main Academic Block — 2nd Floor (Sprint Labs)',
-      subtitle: 'Classrooms 2A, 2B, 2C with tiered tables and dual whiteboards',
-      floor: 'Floor 2',
-    },
-    {
-      key: 'Floor 1',
-      title: 'Main Academic Block — 1st Floor (Innovation & Deep Work)',
-      subtitle: 'Block B Innovation Lab, acoustic reading room & shaded terrace',
-      floor: 'Floor 1',
+      key: 'Upper Basement',
+      title: 'Upper Basement — Student Mess, Uniworld & Recreation',
+      subtitle: 'Cheftalk Main, Jain counter, Uniworld Dining, The Craving Brew & indoor games',
+      floor: 'Upper Basement',
     },
     {
       key: 'Ground Floor Academic',
@@ -96,17 +90,23 @@ export const BlockWiseSpaceView: React.FC<BlockWiseSpaceViewProps> = ({
       category: 'study',
     },
     {
-      key: 'Upper Basement',
-      title: 'Upper Basement — Student Mess & Recreation',
-      subtitle: 'Cheftalk Main, Jain counter, The Craving Brew & indoor games',
-      floor: 'Upper Basement',
-    },
-    {
       key: 'Ground Floor Sports',
       title: 'Outdoor Sports Zone — Ground Level',
       subtitle: 'Synthetic football turf, badminton court & basketball hardcourt',
       floor: 'Ground Floor',
       category: 'sports',
+    },
+    {
+      key: 'Floor 1',
+      title: 'Main Academic Block — 1st Floor (Innovation & Deep Work)',
+      subtitle: 'Block B Innovation Lab, acoustic reading room & shaded terrace',
+      floor: 'Floor 1',
+    },
+    {
+      key: 'Floor 2',
+      title: 'Main Academic Block — 2nd Floor (Sprint Labs)',
+      subtitle: 'Classrooms 2A, 2B, 2C with tiered tables and dual whiteboards',
+      floor: 'Floor 2',
     },
   ];
 
