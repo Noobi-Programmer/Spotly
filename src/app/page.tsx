@@ -12,6 +12,7 @@ import { LocationPermissionBanner } from '@/components/layout/LocationPermission
 import { BlockWiseSpaceView } from '@/components/spaces/BlockWiseSpaceView';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
 import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
+import { SportsBookingModal } from '@/components/booking/SportsBookingModal';
 import { CampusTicketModal } from '@/components/booking/CampusTicketModal';
 import { ProctorVerificationModal } from '@/components/booking/ProctorVerificationModal';
 import { LoginModal } from '@/components/auth/LoginModal';
@@ -426,12 +427,20 @@ export default function CampusSpaceApp() {
         onSubmitReport={submitCrowdReport}
       />
 
-      {/* Seat Booking Modal */}
-      <SeatBookingModal
-        location={targetBookingLocation}
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-      />
+      {/* Seat & Sports Booking Modals */}
+      {targetBookingLocation?.category === 'sports' ? (
+        <SportsBookingModal
+          location={targetBookingLocation}
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+        />
+      ) : (
+        <SeatBookingModal
+          location={targetBookingLocation}
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+        />
+      )}
 
       {/* Spotly Campus Digital E-Ticket & Pass Modal */}
       <CampusTicketModal
