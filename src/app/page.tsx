@@ -13,6 +13,7 @@ import { BlockWiseSpaceView } from '@/components/spaces/BlockWiseSpaceView';
 import { SpaceDetailModal } from '@/components/spaces/SpaceDetailModal';
 import { SeatBookingModal } from '@/components/booking/SeatBookingModal';
 import { CampusTicketModal } from '@/components/booking/CampusTicketModal';
+import { ProctorVerificationModal } from '@/components/booking/ProctorVerificationModal';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { CampusMap } from '@/components/map/CampusMap';
 import { FindSpaceModal } from '@/components/recommendation/FindSpaceModal';
@@ -93,11 +94,27 @@ export default function CampusSpaceApp() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
   // Time-aware greeting
   const currentHour = new Date().getHours();
   const greeting =
     currentHour < 12 ? 'Good morning.' : currentHour < 17 ? 'Good afternoon.' : 'Good evening.';
+
+  // Check URL query for scanned QR verification token
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const token = searchParams.get('verify') || searchParams.get('pass');
+        if (token) {
+          setVerificationToken(token);
+        }
+      } catch (e) {
+        // query fallback
+      }
+    }
+  }, []);
 
   // Mount Supabase Realtime Listener (WebSocket & Auth state changes)
   useSupabaseRealtime((email) => {
@@ -428,6 +445,20 @@ export default function CampusSpaceApp() {
           if (activeTicket) {
             const loc = currentCampusLocations.find((l) => l.id === activeTicket.location_id);
             if (loc) setSelectedLocation(loc);
+          }
+        }}
+      />
+
+      {/* Spotly Proctor / Security QR Code Verification Portal */}
+      <ProctorVerificationModal
+        token={verificationToken}
+        isOpen={Boolean(verificationToken)}
+        onClose={() => setVerificationToken(null)}
+        onGoToSpace={(locId) => {
+          const loc = currentCampusLocations.find((l) => l.id === locId);
+          if (loc) {
+            setSelectedLocation(loc);
+            setShowLanding(false);
           }
         }}
       />

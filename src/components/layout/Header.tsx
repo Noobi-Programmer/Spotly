@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
     setActiveTab,
   } = useCampusStore();
 
-  const totalNotificationsCount = activeAlertCount + tickets.length;
+  const totalNotificationsCount = (activeAlertCount || 0) + (tickets ? tickets.length : 0);
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-primary-container bg-surface-container-low/95 backdrop-blur-md">

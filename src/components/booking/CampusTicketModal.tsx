@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { SeatBooking } from '@/types';
+import { TicketQRCode } from './TicketQRCode';
 import {
   X,
   ShieldCheck,
@@ -186,69 +187,8 @@ export const CampusTicketModal: React.FC<CampusTicketModalProps> = ({
               3. SCANNABLE QR CODE & STUDENT CREDENTIALS
              ========================================================================= */}
           <div className="p-6 flex flex-col items-center text-center gap-4 bg-surface-container-high">
-            {/* Dynamic Scannable QR Code Canvas / SVG */}
-            <div className="relative p-4 rounded-2xl bg-white text-black shadow-xl flex flex-col items-center justify-center">
-              <svg
-                viewBox="0 0 140 140"
-                width="140"
-                height="140"
-                className="rounded-lg"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                {/* QR Finder patterns (Top Left, Top Right, Bottom Left) */}
-                <rect x="0" y="0" width="40" height="40" fill="#0d1604" rx="6" />
-                <rect x="8" y="8" width="24" height="24" fill="#ffffff" rx="3" />
-                <rect x="14" y="14" width="12" height="12" fill="#0d1604" rx="2" />
-
-                <rect x="100" y="0" width="40" height="40" fill="#0d1604" rx="6" />
-                <rect x="108" y="8" width="24" height="24" fill="#ffffff" rx="3" />
-                <rect x="114" y="14" width="12" height="12" fill="#0d1604" rx="2" />
-
-                <rect x="0" y="100" width="40" height="40" fill="#0d1604" rx="6" />
-                <rect x="8" y="108" width="24" height="24" fill="#ffffff" rx="3" />
-                <rect x="14" y="114" width="12" height="12" fill="#0d1604" rx="2" />
-
-                {/* Matrix Datapoints */}
-                <rect x="48" y="10" width="8" height="8" fill="#0d1604" rx="2" />
-                <rect x="64" y="10" width="8" height="8" fill="#0d1604" rx="2" />
-                <rect x="80" y="10" width="8" height="8" fill="#0d1604" rx="2" />
-                <rect x="48" y="26" width="16" height="8" fill="#0d1604" rx="2" />
-                <rect x="72" y="26" width="8" height="16" fill="#0d1604" rx="2" />
-
-                <rect x="10" y="48" width="8" height="8" fill="#0d1604" rx="2" />
-                <rect x="26" y="48" width="16" height="8" fill="#0d1604" rx="2" />
-                <rect x="10" y="64" width="8" height="16" fill="#0d1604" rx="2" />
-                <rect x="26" y="72" width="8" height="8" fill="#0d1604" rx="2" />
-
-                <rect x="100" y="48" width="8" height="16" fill="#0d1604" rx="2" />
-                <rect x="116" y="48" width="16" height="8" fill="#0d1604" rx="2" />
-                <rect x="108" y="72" width="16" height="8" fill="#0d1604" rx="2" />
-
-                <rect x="48" y="48" width="44" height="44" fill="#31572c" rx="8" />
-                <text
-                  x="70"
-                  y="74"
-                  fontSize="18"
-                  fontWeight="bold"
-                  fill="#ffffff"
-                  textAnchor="middle"
-                  fontFamily="sans-serif"
-                >
-                  S
-                </text>
-
-                <rect x="48" y="100" width="16" height="8" fill="#0d1604" rx="2" />
-                <rect x="72" y="100" width="8" height="16" fill="#0d1604" rx="2" />
-                <rect x="88" y="100" width="16" height="8" fill="#0d1604" rx="2" />
-                <rect x="48" y="116" width="8" height="16" fill="#0d1604" rx="2" />
-                <rect x="64" y="124" width="16" height="8" fill="#0d1604" rx="2" />
-                <rect x="108" y="108" width="24" height="8" fill="#0d1604" rx="2" />
-                <rect x="108" y="124" width="16" height="8" fill="#0d1604" rx="2" />
-              </svg>
-
-              {/* Animated Laser Scanning Line */}
-              <div className="absolute inset-x-4 h-0.5 bg-primary shadow-[0_0_8px_#a6d29b] animate-bounce opacity-80" />
-            </div>
+            {/* Dynamic Scannable Real QR Code Component with Encrypted URL */}
+            <TicketQRCode ticket={ticket} size={150} />
 
             {/* Ticket Ref & Holder Details */}
             <div>

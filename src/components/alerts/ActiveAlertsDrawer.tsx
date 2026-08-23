@@ -45,8 +45,9 @@ export const ActiveAlertsDrawer: React.FC<ActiveAlertsDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const activeWatches = alerts.filter((a) => a.is_active);
-  const triggeredWatches = alerts.filter((a) => !a.is_active);
+  const activeWatches = (alerts || []).filter((a) => a.is_active);
+  const triggeredWatches = (alerts || []).filter((a) => !a.is_active);
+  const safeTickets = tickets || [];
 
   const handleOpenTicket = (ticket: SeatBooking) => {
     setActiveTicket(ticket);
@@ -74,7 +75,7 @@ export const ActiveAlertsDrawer: React.FC<ActiveAlertsDrawerProps> = ({
                   Passes &amp; Notifications
                 </h3>
                 <p className="text-xs text-on-surface-variant font-inter">
-                  {tickets.length} active pass{tickets.length === 1 ? '' : 'es'} • {activeWatches.length} watch{activeWatches.length === 1 ? '' : 'es'}
+                  {safeTickets.length} active pass{safeTickets.length === 1 ? '' : 'es'} • {activeWatches.length} watch{activeWatches.length === 1 ? '' : 'es'}
                 </p>
               </div>
             </div>
@@ -98,7 +99,7 @@ export const ActiveAlertsDrawer: React.FC<ActiveAlertsDrawerProps> = ({
               }`}
             >
               <QrCode className="w-3.5 h-3.5" />
-              <span>My Passes ({tickets.length})</span>
+              <span>My Passes ({safeTickets.length})</span>
             </button>
 
             <button
@@ -117,7 +118,7 @@ export const ActiveAlertsDrawer: React.FC<ActiveAlertsDrawerProps> = ({
           {/* Tab 1 Content: My Passes & E-Tickets */}
           {activeTab === 'passes' && (
             <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-230px)] pr-1 no-scrollbar">
-              {tickets.length === 0 ? (
+              {safeTickets.length === 0 ? (
                 <div className="p-8 text-center rounded-2xl bg-surface-container border border-primary-container/60 flex flex-col items-center">
                   <div className="w-12 h-12 rounded-2xl bg-primary-container/40 text-primary flex items-center justify-center mb-3">
                     <QrCode className="w-6 h-6 opacity-70" />
@@ -131,7 +132,7 @@ export const ActiveAlertsDrawer: React.FC<ActiveAlertsDrawerProps> = ({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {tickets.map((t) => {
+                  {safeTickets.map((t) => {
                     return (
                       <div
                         key={t.id}
